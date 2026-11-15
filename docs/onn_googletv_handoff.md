@@ -276,6 +276,27 @@ converted), which the Onn runs without. Suggested test, no build needed:
 `adb shell setprop debug.halo.render_chip 3`. If it helps and draws
 correctly, add the box to `android_chip.c` from its `getprop`.
 
+Their tests (GitHub issue 23, 2026-11-15): with family 3 it draws correctly
+and reaches 30 fps indoors, ~15 in complex open scenes, the same at 25%
+resolution scaling (480x270), so the limit is not the GPU's pixels: most
+likely the driver's cost per draw, or the vertices. The property does not
+outlast a restart, so the box is recognised now (with the merge of
+upstream's build 374): `host_render_policy_onn_googletv.h` gives "other" to
+an unknown chip whose `ro.hardware` or `ro.board.platform` is exactly
+`uiw4059mil` (this Android 10 box sets no `ro.soc.*`), and only then; the
+onn boxes are Amlogic, "other" already. The fork's `debug.halo.render_chip`
+override moved there too: inside `host_render_policy.c` it had broken
+upstream's `tools/test_android_render_policy.py` (its stand-in log has no
+`HOST_LOG_WARN`, and its property lookup knows four names), which passes
+again. Not run on the box.
+
+Also from the issue: `debug.sample_seconds = 0.1` crashes the game on that
+box within minutes (SIGSEGV, the same address each time, r4 + 4), not
+without it: most likely the sampler's signal stops a thread inside the VideoCore driver,
+which does not survive it. Not looked into further (the onn boxes sample
+safely). `debug.gl_profile = true`, which interrupts no thread, is the way
+to see that box's driver time per GL call.
+
 ## 2026-11-15: the fork's name, versions, and a workflow that looks after itself
 
 Pull requests 9-15 of the renamed repository; what to do when the workflow

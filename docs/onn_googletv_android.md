@@ -47,12 +47,21 @@ have other defaults, or are its own:
 | `debug.gl_refresh_state` | `false` | `true`: every OpenGL value is set again for each draw, whatever the renderer remembers having set. For finding whether a driver and the renderer disagree on what is set (black or missing surfaces). |
 | `debug.sample_seconds` | `0` | As in the main project (a hang's sampler), and a fraction of a second (`0.02`, a hundredth at least) makes it a profile with each sample's callers, which simpleperf cannot give of the 32-bit guest: record `adb logcat -s halo` to a file while playing, and count the functions of the `sample tid` lines' addresses (the first is where the thread was, the rest its callers, innermost first; "same N" repeats a thread's last sample). |
 
+Boxes the fork recognises beyond the main project's chip list
+(`port/android/host/host_render_policy_onn_googletv.h`, tested by
+`tools/test_onn_googletv_chip.py`): the Technicolor UIW4059MIL (Broadcom
+BCM72180, VideoCore VI), whose Android names no SoC, takes the "other"
+family's policy (log: `render chip: family 3 (the Technicolor UIW4059MIL,
+Broadcom)`). Only where the main project's list finds no chip, and only that
+board.
+
 Android properties for finding problems (`adb shell setprop ...`, then start
 the game; `""` goes back):
 
 - `debug.halo.render_chip` `0` (unknown: both compatibility paths), `1`
   (Snapdragon), `2` (MediaTek) or `3` (other): another chip family's render
   policy. The log says `render chip: family <n> (debug.halo.render_chip)`.
+  A `debug.` property lasts until the box restarts.
 - `debug.halo.guest_image` `armv7` or `armv8`: that game image, whatever the
   processor (below).
 
