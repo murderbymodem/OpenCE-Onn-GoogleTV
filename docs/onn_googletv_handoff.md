@@ -303,8 +303,8 @@ Multiplayer rule: change nothing in the simulation or network messages; keep
 
 ## Builds and releases
 
-- CI: `.github/workflows/androidtv.yml`. Push to `armeabi-v7a` -> clang 22
-  (apt.llvm.org) + PGO (`pgo/halo_linux.profdata`), release `build-<run+100>`
+- CI: `.github/workflows/onn-googletv.yml` (`androidtv.yml` until 2026-11-15). Push to `armeabi-v7a` -> clang 22
+  (apt.llvm.org) + PGO (`pgo/halo_linux.profdata`), release `build-<run+200>`, titled `1.0.<run>`
   with `halo-android-release.zip` and `halo-android-debug.zip`, latest, last five kept. Daily 07:41 UTC
   sync merges upstream main (issue on conflict). Upstream's Build and Server
   image workflows are disabled in the fork. Secrets: `ANDROID_KEYSTORE_BASE64`,
@@ -318,9 +318,13 @@ Multiplayer rule: change nothing in the simulation or network messages; keep
   the device (build 14 -> CI build).
 - The updater (`Updater.java`) checks `BuildConfig.HALO_UPDATE_REPOSITORY`
   (HALO_UPDATE_REPOSITORY, else GITHUB_REPOSITORY, else upstream).
-- Signing key: the user holds `opence-androidtv-signing-key.zip` (keystore,
-  base64, password; alias `halo`). Never commit it. Builds 1-14 were made by
-  hand with this key; CI builds start at 101.
+- Signing key: the user holds it (the keystore, its base64 and password;
+  alias `halo`); the workflow has it as the `ANDROID_KEYSTORE_BASE64` and
+  `ANDROID_KEYSTORE_PASSWORD` secrets. Never commit it, and never make a new
+  one: an app signed with another key does not install over this one, and
+  uninstalling first deletes its game data. Builds 1-14 were made by hand
+  with this key; the workflow's were 101-125 (as androidtv.yml), then 201 on
+  (1.0.1 on) as onn-googletv.yml.
 - Local build (cloud session): Android SDK in `~/android-sdk`, NDK 29
   (`ANDROID_NDK_HOME` pinned to 29; NDK 30 also installed, its clang is 21).
   PGO needs clang 22, not available locally:

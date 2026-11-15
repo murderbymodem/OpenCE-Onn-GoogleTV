@@ -205,9 +205,8 @@ final class Updater {
             return;
         new AlertDialog.Builder(activity)
             .setTitle("Halo: new version")
-            .setMessage("A new version of Halo was detected (build " + latest + "; this is build "
-                + BuildConfig.HALO_BUILD_NUMBER + ").\n\nDo you want to update? The game will close and start "
-                + "the new version.")
+            .setMessage("A new version of Halo was detected (this is " + BuildConfig.VERSION_NAME
+                + ").\n\nDo you want to update? The game will close and start the new version.")
             .setCancelable(false)
             .setPositiveButton("Yes", (dialog, which) -> update(activity, latest))
             .setNegativeButton("No", null)

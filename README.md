@@ -57,7 +57,7 @@ The 32-bit Onn GoogleTV app has been tested on:
 GitHub Actions builds the game for each commit. 
 
 Builds for latest release (the Onn GoogleTV row is this fork's own release, built by
-[androidtv.yml](.github/workflows/androidtv.yml) for each commit to `armeabi-v7a`;
+[onn-googletv.yml](.github/workflows/onn-googletv.yml) for each commit to `armeabi-v7a`;
 the others are the main project's):
 
 | Platform | Release | Debug | Guide |

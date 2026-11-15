@@ -1,4 +1,4 @@
-name: Android TV (armeabi-v7a)
+name: OpenCE Onn GoogleTV (armeabi-v7a)
 
 # The 32-bit Android app (armeabi-v7a, port/android/README.md, "The 32-bit
 # app") of this fork, for Android TV boxes whose Android runs only 32-bit apps.
@@ -10,9 +10,11 @@ name: Android TV (armeabi-v7a)
 # published as a release build-<n> holding halo-android-release.zip and
 # halo-android-debug.zip, the newest marked latest: the app's self-updater
 # (Updater.java) of the builds made here takes the one of its own kind from
-# this repository. n is the run number
-# plus 100, above the builds made by hand before this workflow. The last five
-# are kept.
+# this repository. n is the run number plus 200: the app's version code and
+# the updater compare it, so it stays above the builds 101-125 of the
+# workflow's old name (androidtv.yml), whose installs then update to these.
+# The players' version is 1.0.<run number> (HALO_VERSION_NAME): the app's
+# version name and the release's title. The last five releases are kept.
 #
 # sync: every day (and by hand, with the sync input), the main project's new commits on its main
 # branch are merged into armeabi-v7a, so that this app stays able to play with
@@ -45,7 +47,7 @@ on:
     - cron: "41 7 * * *"
 
 concurrency:
-  group: androidtv-${{ github.event_name == 'schedule' && 'sync' || github.ref }}
+  group: onn-googletv-${{ github.event_name == 'schedule' && 'sync' || github.ref }}
   cancel-in-progress: false
 
 permissions:
@@ -127,7 +129,7 @@ jobs:
           HAS_SYNC_TOKEN: ${{ secrets.SYNC_TOKEN != '' }}
         run: |
           if [ "$HAS_SYNC_TOKEN" != "true" ]; then
-            gh workflow run androidtv.yml --ref "$BRANCH"
+            gh workflow run onn-googletv.yml --ref "$BRANCH"
           fi
 
   build:
@@ -165,8 +167,8 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: .ccache
-          key: ccache-androidtv-${{ github.sha }}
-          restore-keys: ccache-androidtv-
+          key: ccache-onn-googletv-${{ github.sha }}
+          restore-keys: ccache-onn-googletv-
 
       - uses: actions/cache@v4
         with:
@@ -190,7 +192,8 @@ jobs:
           fi
           printf '%s' "$KEYSTORE" | base64 -d > "$RUNNER_TEMP/halo.keystore"
           echo "HALO_ANDROID_KEYSTORE=$RUNNER_TEMP/halo.keystore" >> "$GITHUB_ENV"
-          echo "HALO_BUILD_NUMBER=$((GITHUB_RUN_NUMBER + 100))" >> "$GITHUB_ENV"
+          echo "HALO_BUILD_NUMBER=$((GITHUB_RUN_NUMBER + 200))" >> "$GITHUB_ENV"
+          echo "HALO_VERSION_NAME=1.0.$GITHUB_RUN_NUMBER" >> "$GITHUB_ENV"
 
       - name: Release build
         env:
@@ -254,11 +257,11 @@ jobs:
           (cd dist/halo-android-debug && zip -qr "$GITHUB_WORKSPACE/halo-android-debug.zip" .)
           subject="$(printf '%s' "${MESSAGE:-$(git log -1 --format=%s)}" | head -n 1)"
           network_version="$(sed -n 's/^#define HALO_PORT_NETWORK_VERSION \([0-9]*\).*/\1/p' port/linux/include/halo_port_limits.h)"
-          printf '%s\n\nThe 32-bit Android app (armeabi-v7a) for Android TV boxes. Install halo-android-release.zip'"'"'s APK (adb install -r), or let the app update itself; halo-android-debug.zip'"'"'s app checks the game'"'"'s assertions, for reporting problems.\n\nCommit: %s\nBuild: %s\nNetwork version: %s\n' \
+          printf '%s\n\nOpenCE Onn GoogleTV '"$HALO_VERSION_NAME"': the 32-bit Android app (armeabi-v7a) for the Onn 4K GoogleTV boxes. Install halo-android-release.zip'"'"'s APK (adb install -r), or let the app update itself; halo-android-debug.zip'"'"'s app checks the game'"'"'s assertions, for reporting problems.\n\nCommit: %s\nBuild: %s\nNetwork version: %s\n' \
             "$subject" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$GITHUB_SHA" \
             "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" "$network_version" > notes.md
           gh release create "$tag" halo-android-release.zip halo-android-debug.zip --target "$GITHUB_SHA" --latest \
-            --title "Build $HALO_BUILD_NUMBER (${GITHUB_SHA:0:7})" --notes-file notes.md
+            --title "OpenCE Onn GoogleTV $HALO_VERSION_NAME (${GITHUB_SHA:0:7})" --notes-file notes.md
 
       - name: Keep the last five
         if: ${{ github.ref == 'refs/heads/armeabi-v7a' }}
