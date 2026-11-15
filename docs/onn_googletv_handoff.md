@@ -283,15 +283,17 @@ asks is in [onn_googletv_runbook.md](onn_googletv_runbook.md).
 
 - Name: the project is "OpenCE Onn GoogleTV", the repository
   `OpenCE-Onn-GoogleTV`, the workflow `onn-googletv.yml`, these notes
-  `onn_googletv_handoff.md`. The README keeps upstream's layout (the user
-  chose this so that merging upstream's README stays easy): title, badge,
-  download row, and the hardware section's notes (about 30 fps in small
+  `onn_googletv_handoff.md`. The README kept upstream's layout at first
+  (title, badge, download row; superseded later that night by the fork's own
+  front page, below), and the hardware section's notes (about 30 fps in small
   multiplayer matches with dips; high player counts and modded co-op may not
   be playable; older onn and other 32-bit boxes untested).
 - Versions: `tools/onn_googletv_version.sh`. A release that merges
   upstream's build N is named N (365); the fork's own releases after it on
   that base N.1, N.2. The internal number (version code, `build-<n>` tag,
-  what the updater compares) is N * 100 + revision (36501); it must only
+  what the updater compares) is N * 100 + revision, the first release on a
+  base being revision 1 (365 is 36501, 365.1 is 36502, 365.5 is 36506; 99
+  releases a base at most); it must only
   rise, since Android installs no lower version code. Older releases were
   101-127 and 359.1/359.2 (the first scheme).
 - Sync: every six hours, upstream's newest release tag, not the tip of
@@ -324,6 +326,8 @@ asks is in [onn_googletv_runbook.md](onn_googletv_runbook.md).
 
 ## 2026-11-15: the main project's documents left as they are
 
+Pull request 16.
+
 The main project edits its documents constantly (its `port/linux/README.md`
 383 times in 60 days, its settings table above all), and the fork's rows in
 them were each within a few lines of its edits 11 to 21 times: a merge
@@ -337,8 +341,9 @@ now the main project's too (below).
 
 ## 2026-11-15: the fork's code in files of its own
 
-Where the fork's changes sat in the main project's busiest files, they moved
-to files only the fork has, leaving the smallest hooks:
+Pull request 17 (release 365.4, tested on the boxes). Where the fork's
+changes sat in the main project's busiest files, they moved to files only
+the fork has, leaving the smallest hooks:
 
 - The mixer's lock (`dsound_onn_googletv.inl`): `dsound_sdl.c` includes it
   after `mixer_lock`, and its macro takes every
@@ -363,7 +368,8 @@ port itself, in files the main project seldom edits.
 
 ## 2026-11-15: the fork's own front page
 
-The repository's front page is `.github/README.md`, which GitHub shows in
+Pull requests 18 and 19. The repository's front page is
+`.github/README.md`, which GitHub shows in
 place of the root `README.md`. It is the fork's own: its title, its download
 badge only, the main project's first sentence (linking the main project) and
 a paragraph on the fork, the first paragraph on the game data, the hardware
@@ -376,6 +382,33 @@ building and development are left out (the root `README.md` still has them).
 The root `README.md` is the main project's exactly, so no merge of it can
 conflict. The front page's relative links start from `.github/`
 (`../docs/...`).
+
+## 2026-11-15: the releases of the night, and no `main` branch
+
+| Release | `build-<n>` | From | What changed for the app |
+| --- | --- | --- | --- |
+| 365 | 36501 | the sync's merge of upstream build 365 | upstream's 8 commits |
+| 365.1 | 36502 | pull request 13 | none (the separate sign job; first app it signed) |
+| 365.2 | 36503 | pull request 14 | none (only the two archives' new names) |
+| 365.3 | 36504 | pull request 15 | none (the workflow's self-maintenance) |
+| 365.4 | 36505 | pull request 17 | the fork's code moved to its own files (same behaviour) |
+| 365.5 | 36506 | pull request 19 | none (a comment in the workflow; documents) |
+
+Before these, pull requests 11 (the renamed files) and 12 (the versions
+matching upstream's) each built a release in the numbering of the time;
+the Releases page no longer has them, as it keeps five. Pull requests 10,
+16 and 18 changed only Markdown and built nothing.
+Both boxes updated themselves through these; the user tested 365.4 on them
+and it works. 365.5 is the same app code as 365.4 and was not run on a box.
+
+The fork's `main` branch was deleted (by the user): it was described as a
+mirror of upstream, but nothing ever updated it (it was 126 commits behind
+build 365), and the sync fetches upstream's release tags from upstream
+itself. `armeabi-v7a` is the only long-lived branch; compare against
+upstream's own repository and its `build-<n>` tags. Every `claude/` branch
+of the night was merged (or, for pull request 9, superseded by the user's
+own rename) and the user deletes them on GitHub, which refuses Claude
+sessions' branch deletions.
 
 ## Next steps
 
