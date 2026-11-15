@@ -6,8 +6,9 @@ What the fork adds (the 32-bit app, its settings): [onn_googletv_android.md](onn
 The standing rules for Claude sessions: `CLAUDE.md`.
 
 State of the 32-bit Android (armeabi-v7a) port in the fork
-`murderbymodem/OpenCE-Onn-GoogleTV` (renamed from OpenCE-AndroidTV on 2026-11-15), branch `armeabi-v7a` (the default branch;
-`main` is kept as a plain mirror of upstream `OpenCommunityEdition/OpenCE`).
+`murderbymodem/OpenCE-Onn-GoogleTV` (renamed from OpenCE-AndroidTV on 2026-11-15), branch `armeabi-v7a` (the default and only long-lived branch; the fork has
+no copy of upstream `OpenCommunityEdition/OpenCE`'s `main`: compare against
+upstream itself).
 Test device: Onn 4K Pro Gen 2 (2026), Amlogic S905X5M (4x Cortex-A55), Mali-G310,
 OpenGL ES 3.2, Android 14, 32-bit userland, 3 GB RAM; and the Onn 4K Plus
 (2026), the same but 2 GB RAM.
@@ -363,14 +364,18 @@ port itself, in files the main project seldom edits.
 ## 2026-11-15: the fork's own front page
 
 The repository's front page is `.github/README.md`, which GitHub shows in
-place of the root `README.md`: the fork's title, badges, hardware section and
-download table (the other platforms' rows link the main project's
-downloads), then the main project's opening, game data, download notes,
-credits, licence and disclaimer. The main project's sections on multiplayer,
-maps, mods, graphics, building and development are left out (much of it does
-not run on the boxes; the root `README.md` still has them). The root
-`README.md` is the main project's exactly, so no merge of it can conflict.
-Its relative links start from `.github/` (`../docs/...`).
+place of the root `README.md`. It is the fork's own: its title, its download
+badge only, the main project's first sentence (linking the main project) and
+a paragraph on the fork, the first paragraph on the game data, the hardware
+section, a download table of the fork's release only (with notes on the
+debug build, the app's updates and the last five releases), and the credits
+(saying the fork is a fork of OpenCE, then the main project's credits),
+licence and disclaimer. The main project's badges, screenshot, other
+platforms' downloads and sections on multiplayer, maps, mods, graphics,
+building and development are left out (the root `README.md` still has them).
+The root `README.md` is the main project's exactly, so no merge of it can
+conflict. The front page's relative links start from `.github/`
+(`../docs/...`).
 
 ## Next steps
 
@@ -432,8 +437,9 @@ Multiplayer rule: change nothing in the simulation or network messages; keep
   `PROFILE_LLVM_MAJOR` of `tools/linux_build.py`, upstream's profiles' own.
 - Repository: `murderbymodem/OpenCE-Onn-GoogleTV` (renamed from
   OpenCE-AndroidTV; GitHub redirects the old name, the API too, and the
-  updater follows redirects). Default branch `armeabi-v7a`; `main` mirrors
-  upstream and builds nothing; Pages off; issues on (the workflow opens them:
+  updater follows redirects). Default and only long-lived branch `armeabi-v7a`
+  (the fork's `main`, a copy of upstream's that nothing updated, was deleted
+  on 2026-11-15: the sync fetches upstream itself); Pages off; issues on (the workflow opens them:
   conflicts, the sync token). Upstream's `build.yml` and `server-image.yml`
   stay in the tree (so merges do not conflict) but are disabled in the
   Actions settings: never enable them. Auto-update verified on both boxes

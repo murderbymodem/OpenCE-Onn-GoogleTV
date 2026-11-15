@@ -56,8 +56,7 @@ name: OpenCE Onn GoogleTV (armeabi-v7a)
 # and its web site; server-image.yml) are for it: they stay in the branch, so
 # that merging the main project's changes to them does not conflict, but are
 # disabled here (Actions, the workflow, Disable workflow). This workflow runs
-# only for armeabi-v7a; main is a mirror of the main project and builds
-# nothing.
+# only for armeabi-v7a, the fork's only long-lived branch.
 on:
   push:
     branches: [armeabi-v7a]

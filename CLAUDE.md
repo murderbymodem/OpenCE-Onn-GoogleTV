@@ -28,9 +28,10 @@ Read as needed:
 - **Online play with the main project must keep working.** Change nothing
   the machines of a network game send or must agree on, and keep
   `HALO_PORT_NETWORK_VERSION` as the main project's.
-- **Branches:** `armeabi-v7a` is the default branch, and each push to it
-  publishes a release the boxes' app installs; `main` mirrors the main
-  project and is never edited. Work on a `claude/` branch and open a pull
+- **Branches:** `armeabi-v7a` is the only long-lived branch (the default),
+  and each push to it publishes a release the boxes' app installs. The main
+  project's code is compared against in its own repository (its `build-<n>`
+  tags), not a copy here. Work on a `claude/` branch and open a pull
   request; the user merges it. Test a branch with the workflow's Run
   workflow on that branch: it builds and signs, and publishes nothing.
 - **Releases:** the workflow makes them (`tools/onn_googletv_version.sh`).
