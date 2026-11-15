@@ -45,6 +45,13 @@ name: OpenCE Onn GoogleTV (armeabi-v7a)
 # longer works (expired) is reported in an issue, and the sync goes on with
 # GitHub's own token.
 #
+# The sync also builds again a commit of armeabi-v7a that has no release
+# (twice at most: a passing failure), and writes docs/onn_googletv_keepalive.md
+# after 45 days without a commit (GitHub turns schedules off after 60). By
+# hand, the rebuild input rolls back: an earlier release's commit, built as a
+# new release with the next number, which the boxes take as an update.
+# docs/onn_googletv_runbook.md says what to do when the workflow asks.
+#
 # The main project's own workflows (build.yml: every platform, its releases
 # and its web site; server-image.yml) are for it: they stay in the branch, so
 # that merging the main project's changes to them does not conflict, but are
@@ -62,6 +69,10 @@ on:
         description: "Merge the main project's newest release first (then build)"
         type: boolean
         default: false
+      rebuild:
+        description: "Roll back: rebuild this earlier release (its tag, build-<n>) or commit of armeabi-v7a as a new release"
+        type: string
+        default: ""
   schedule:
     # (every six hours, off the hour, which GitHub delays the most)
     - cron: "17 */6 * * *"
@@ -105,6 +116,21 @@ jobs:
             echo "works=false" >> "$GITHUB_OUTPUT"
           elif GH_TOKEN="$SYNC_TOKEN" gh api "repos/$GH_REPO" --jq .full_name > /dev/null 2>&1; then
             echo "works=true" >> "$GITHUB_OUTPUT"
+            # (GitHub names a token's expiry in its responses: two weeks
+            # before it, an issue says to renew it)
+            expires="$(curl -sS -o /dev/null -D - -H "Authorization: Bearer $SYNC_TOKEN" "https://api.github.com/repos/$GH_REPO" |
+              sed -n 's/^[Gg]ithub-[Aa]uthentication-[Tt]oken-[Ee]xpiration: *\(.*[^[:space:]]\).*$/\1/p')"
+            if [ -n "$expires" ] && expiry="$(date -d "$expires" +%s 2>/dev/null)" &&
+              [ $(( expiry - $(date +%s) )) -lt $(( 14 * 86400 )) ]; then
+              title="The sync token expires soon"
+              echo "::warning title=$title::OPENCE_ONN_GOOGLETV_SYNC_TOKEN expires on $expires"
+              if [ "$(gh api "repos/$GH_REPO" --jq .has_issues)" = "true" ] &&
+                [ -z "$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[].number')" ]; then
+                printf 'The OPENCE_ONN_GOOGLETV_SYNC_TOKEN secret expires on %s.\n\nRegenerate the token before then (Settings, Developer settings, Fine-grained tokens, the token, Regenerate token, a new expiry) and put its new value in the secret (this repository'"'"'s Settings, Secrets and variables, Actions). Then close this issue. See docs/onn_googletv_runbook.md.\n' \
+                  "$expires" > issue.md
+                gh issue create --title "$title" --body-file issue.md || true
+              fi
+            fi
           else
             echo "works=false" >> "$GITHUB_OUTPUT"
             title="The sync token no longer works"
@@ -184,6 +210,62 @@ jobs:
             gh workflow run onn-googletv.yml --ref "$BRANCH"
           fi
 
+      # a commit of armeabi-v7a that has no release, whose build failed for a
+      # passing reason (a download, the runner): built again, at most twice.
+      # Commits of .md files only are not built, and a commit with a
+      # release (a rollback's base too) is left alone
+      - name: Build again what has no release
+        if: ${{ steps.merge.outputs.merged != 'true' }}
+        run: |
+          sha="$(git rev-parse HEAD)"
+          gh api "repos/$GH_REPO/releases?per_page=100" --jq '.[].target_commitish' > released.txt
+          if grep -qx "$sha" released.txt; then
+            echo "$sha has a release"
+            exit 0
+          fi
+          latest="$(gh api "repos/$GH_REPO/releases/latest" --jq .target_commitish 2>/dev/null || true)"
+          if [ -n "$latest" ] && git merge-base --is-ancestor "$latest" HEAD 2>/dev/null &&
+            ! git diff --name-only "$latest" HEAD | grep -qv '\.md$'; then
+            echo "only .md files changed since the latest release: nothing to build"
+            exit 0
+          fi
+          failed=0
+          for run in $(gh api "repos/$GH_REPO/actions/workflows/onn-googletv.yml/runs?head_sha=$sha&per_page=50" --jq '.workflow_runs[].id'); do
+            # (not this run, which is of the same commit)
+            [ "$run" = "$GITHUB_RUN_ID" ] && continue
+            status="$(gh api "repos/$GH_REPO/actions/runs/$run" --jq .status)"
+            if [ "$status" != "completed" ]; then
+              echo "a run of $sha is $status"
+              exit 0
+            fi
+            if gh api "repos/$GH_REPO/actions/runs/$run/jobs" --jq '.jobs[] | select(.name == "build" or .name == "sign") | .conclusion' | grep -qx failure; then
+              failed=$(( failed + 1 ))
+            fi
+          done
+          if [ "$failed" -ge 3 ]; then
+            echo "$sha failed to build $failed times: left to a person (docs/onn_googletv_runbook.md)"
+            exit 0
+          fi
+          echo "$sha has no release ($failed failed builds): building it again"
+          gh workflow run onn-googletv.yml --ref "$BRANCH"
+
+      # GitHub turns a public repository's schedules off after 60 days with no
+      # commit: when the main project has released nothing for 45, a commit
+      # of the keepalive note (an .md file, which builds nothing) keeps the
+      # sync running
+      - name: Keep the schedule alive
+        if: ${{ steps.merge.outputs.merged != 'true' }}
+        run: |
+          last="$(git log -1 --format=%ct HEAD)"
+          if [ $(( $(date +%s) - last )) -lt $(( 45 * 86400 )) ]; then
+            exit 0
+          fi
+          printf '# Sync keepalive\n\nWritten by the sync (.github/workflows/onn-googletv.yml) when armeabi-v7a had no commit for 45 days, so that GitHub does not turn the scheduled sync off (it does after 60). Last written: %s.\n' \
+            "$(date -u '+%Y-%m-%d %H:%M UTC')" > docs/onn_googletv_keepalive.md
+          git add docs/onn_googletv_keepalive.md
+          git commit -q -m "Keep the scheduled sync alive (no commit for 45 days)"
+          git push origin "HEAD:$BRANCH"
+
   build:
     if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && !inputs.sync) }}
     runs-on: ubuntu-24.04
@@ -196,11 +278,37 @@ jobs:
       name: ${{ steps.version.outputs.name }}
       network_version: ${{ steps.version.outputs.network_version }}
       subject: ${{ steps.version.outputs.subject }}
+      commit: ${{ steps.version.outputs.commit }}
+      based_on: ${{ steps.version.outputs.based_on }}
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
+      REBUILD: ${{ inputs.rebuild }}
     steps:
+      # (a rollback: the earlier release's commit, with this workflow)
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.rebuild || github.sha }}
+
+      - name: Rollback
+        if: ${{ inputs.rebuild != '' }}
+        run: |
+          if [ "$GITHUB_REF" != "refs/heads/$BRANCH" ]; then
+            echo "::error::a rollback is run on $BRANCH (Run workflow, Use workflow from: $BRANCH)"
+            exit 1
+          fi
+          git fetch -q --no-tags --depth=500 origin "$BRANCH"
+          if ! git merge-base --is-ancestor HEAD FETCH_HEAD; then
+            echo "::error::$REBUILD is not a commit of $BRANCH"
+            exit 1
+          fi
+          # (an app before 359.1 has an updater that asks for the archives'
+          # earlier names: the boxes would stop updating)
+          if ! grep -q HALO_RELEASE_ASSET_PREFIX port/android/app/src/main/java/com/halo/decomp/Updater.java; then
+            echo "::error::$REBUILD is from before 359.1, whose apps no longer find this repository's updates"
+            exit 1
+          fi
+          echo "rolling back to $REBUILD ($(git rev-parse --short HEAD))"
 
       # ninja, ccache, and the clang of the main project's profiles in pgo/
       # (PROFILE_LLVM_MAJOR, tools/linux_build.py: read, not run), from
@@ -208,8 +316,8 @@ jobs:
       - name: Install the toolchain
         run: |
           mkdir -p "$RUNNER_TEMP/tools"
-          curl -fsSL -o ninja.zip https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-linux.zip
-          curl -fsSL -o ccache.tar.xz https://github.com/ccache/ccache/releases/download/v4.10.2/ccache-4.10.2-linux-x86_64.tar.xz
+          curl -fsSL --retry 5 --retry-all-errors -o ninja.zip https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-linux.zip
+          curl -fsSL --retry 5 --retry-all-errors -o ccache.tar.xz https://github.com/ccache/ccache/releases/download/v4.10.2/ccache-4.10.2-linux-x86_64.tar.xz
           sha256sum -c - <<'EOF'
           6f98805688d19672bd699fbbfa2c2cf0fc054ac3df1f0e6a47664d963d530255  ninja.zip
           80cab87bd510eca796467aee8e663c398239e0df1c4800a0b5dff11dca0b4f18  ccache.tar.xz
@@ -222,12 +330,31 @@ jobs:
             major=22
             echo "::warning::no PROFILE_LLVM_MAJOR in tools/linux_build.py: clang $major"
           fi
-          curl -fsSL -o llvm.sh https://apt.llvm.org/llvm.sh
-          sudo bash llvm.sh "$major"
-          clang-"$major" --version
-          # (the guest's link-time optimisation links with it)
-          "$(clang-"$major" -print-prog-name=ld.lld)" --version
-          echo "CI_ANDROID_GUEST_CC=clang-$major" >> "$GITHUB_ENV"
+          # (three tries: LLVM's packages are now and then unreachable)
+          installed=false
+          for attempt in 1 2 3; do
+            if curl -fsSL --retry 5 --retry-all-errors -o llvm.sh https://apt.llvm.org/llvm.sh &&
+              sudo bash llvm.sh "$major" && clang-"$major" --version &&
+              "$(clang-"$major" -print-prog-name=ld.lld)" --version; then
+              installed=true
+              break
+            fi
+            sleep 60
+          done
+          mkdir -p "$RUNNER_TEMP/clang"
+          if [ "$installed" = true ]; then
+            echo "CI_ANDROID_GUEST_CC=clang-$major" >> "$GITHUB_ENV"
+            # (the guest optimised as one module, linked by its clang's ld.lld)
+            echo "CI_ANDROID_GUEST_LTO=1" >> "$GITHUB_ENV"
+            ln -sf "$(command -v clang-"$major")" "$RUNNER_TEMP/clang/clang"
+            ln -sf "$(clang-"$major" -print-prog-name=ld.lld)" "$RUNNER_TEMP/clang/ld.lld"
+          else
+            # the runner's own clang: slower code (no profiles, no link-time
+            # optimisation), but a release all the same
+            echo "::warning::clang $major could not be installed from apt.llvm.org: the runner's $(clang --version | head -n 1), without the profiles or link-time optimisation"
+            echo "CI_ANDROID_GUEST_CC=clang" >> "$GITHUB_ENV"
+            echo "CI_ANDROID_GUEST_LTO=" >> "$GITHUB_ENV"
+          fi
 
       # the version (tools/onn_googletv_version.sh): this commit's recent
       # history and the main project's, to find its newest release in it
@@ -236,13 +363,21 @@ jobs:
         env:
           MESSAGE: ${{ github.event.head_commit.message }}
         run: |
-          git fetch -q --no-tags --depth=500 origin "$GITHUB_SHA"
+          git fetch -q --no-tags --depth=500 origin "$GITHUB_SHA" "$(git rev-parse HEAD)"
           git fetch -q --no-tags --depth=500 "$UPSTREAM" "$UPSTREAM_BRANCH"
           gh api "repos/$GH_REPO/releases?per_page=100" --jq '.[].tag_name' > "$RUNNER_TEMP/tags.txt"
+          # (the script of this workflow's commit: a rollback's commit may
+          # have an older one, or none)
+          git show "$GITHUB_SHA:tools/onn_googletv_version.sh" > "$RUNNER_TEMP/version.sh"
           # (a failure of the script stops the build: no release with no number)
-          version="$(tools/onn_googletv_version.sh "$UPSTREAM" "$RUNNER_TEMP/tags.txt")"
-          read -r code name <<< "$version"
-          echo "version $name (build-$code)"
+          version="$(bash "$RUNNER_TEMP/version.sh" "$UPSTREAM" "$RUNNER_TEMP/tags.txt")"
+          read -r code name based_on <<< "$version"
+          echo "version $name (build-$code), based on OpenCE build $based_on"
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "based_on=$based_on" >> "$GITHUB_OUTPUT"
+          if [ -n "$REBUILD" ]; then
+            MESSAGE="Rollback: a rebuild of $REBUILD ($(git rev-parse --short HEAD))"
+          fi
           echo "HALO_BUILD_NUMBER=$code" >> "$GITHUB_ENV"
           echo "HALO_VERSION_NAME=$name" >> "$GITHUB_ENV"
           echo "code=$code" >> "$GITHUB_OUTPUT"
@@ -274,11 +409,11 @@ jobs:
       - name: Release build
         env:
           CI_ANDROID_ABIS: armeabi-v7a
-          # (the guest optimised as one module, linked by its clang's ld.lld)
-          CI_ANDROID_GUEST_LTO: "1"
           CI_COMPILER_LAUNCHER: ccache
           CCACHE_DIR: ${{ github.workspace }}/.ccache
         run: |
+          # (the build's own failure, not tee's success)
+          set -o pipefail
           python3 tools/ci_build.py android release 2>&1 | tee build.log
           # (the guest's compiler only: configure.py also writes the Linux
           # build's rules, with the runner's own clang)
@@ -303,6 +438,23 @@ jobs:
             unzip -l "$apk" | grep -q "assets/halo_guest_armv8.elf"
             ! unzip -l "$apk" | grep -q "lib/arm64-v8a/"
           done
+
+      # the fork's own 32-bit code that a PC can run: the fixups of the
+      # guest's unaligned accesses (tools/test_host_alignment.py)
+      - name: 32-bit tests
+        run: |
+          set -o pipefail
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install -q pytest
+          if [ ! -f tools/test_host_alignment.py ]; then
+            echo "no tools/test_host_alignment.py in this commit"
+            exit 0
+          fi
+          PATH="$RUNNER_TEMP/clang:$PATH" "$RUNNER_TEMP/venv/bin/python" -m pytest -q -rs -p no:cacheprovider \
+            tools/test_host_alignment.py 2>&1 | tee tests.log
+          if grep -q "skipped" tests.log; then
+            echo "::warning::the 32-bit tests were skipped (tests.log)"
+          fi
 
       # (for the sign job only)
       - uses: actions/upload-artifact@v4
@@ -410,15 +562,17 @@ jobs:
           NAME: ${{ needs.build.outputs.name }}
           NETWORK_VERSION: ${{ needs.build.outputs.network_version }}
           SUBJECT: ${{ needs.build.outputs.subject }}
+          COMMIT: ${{ needs.build.outputs.commit }}
+          BASED_ON: ${{ needs.build.outputs.based_on }}
           PREFIX: opence-onn-googletv
         run: |
           tag="build-$CODE"
           (cd dist/halo-android-release && zip -qr "$GITHUB_WORKSPACE/$PREFIX-release.zip" .)
           (cd dist/halo-android-debug && zip -qr "$GITHUB_WORKSPACE/$PREFIX-debug.zip" .)
-          printf '%s\n\nOpenCE Onn GoogleTV '"$NAME"': the 32-bit Android app (armeabi-v7a) for the Onn 4K GoogleTV boxes. Install opence-onn-googletv-release.zip'"'"'s APK (adb install -r), or let the app update itself; opence-onn-googletv-debug.zip'"'"'s app checks the game'"'"'s assertions, for reporting problems.\n\nBased on OpenCE build '"${NAME%%.*}"'.\nCommit: %s\nBuild: %s\nNetwork version: %s\n' \
-            "$SUBJECT" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$GITHUB_SHA" \
+          printf '%s\n\nOpenCE Onn GoogleTV '"$NAME"': the 32-bit Android app (armeabi-v7a) for the Onn 4K GoogleTV boxes. Install opence-onn-googletv-release.zip'"'"'s APK (adb install -r), or let the app update itself; opence-onn-googletv-debug.zip'"'"'s app checks the game'"'"'s assertions, for reporting problems.\n\nBased on OpenCE build '"$BASED_ON"'.\nCommit: %s\nBuild: %s\nNetwork version: %s\n' \
+            "$SUBJECT" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$COMMIT" \
             "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" "$NETWORK_VERSION" > notes.md
-          gh release create "$tag" "$PREFIX-release.zip" "$PREFIX-debug.zip" --target "$GITHUB_SHA" --latest \
+          gh release create "$tag" "$PREFIX-release.zip" "$PREFIX-debug.zip" --target "$COMMIT" --latest \
             --title "$NAME" --notes-file notes.md
 
       - name: Keep the last five

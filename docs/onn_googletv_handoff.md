@@ -1,5 +1,8 @@
 # OpenCE Onn GoogleTV: handoff notes
 
+What to do when the workflow sends an email or opens an issue (conflicts,
+failed builds, the token, rollbacks): [onn_googletv_runbook.md](onn_googletv_runbook.md).
+
 State of the 32-bit Android (armeabi-v7a) port in the fork
 `murderbymodem/OpenCE-Onn-GoogleTV` (renamed from OpenCE-AndroidTV on 2026-11-15), branch `armeabi-v7a` (the default branch;
 `main` is kept as a plain mirror of upstream `OpenCommunityEdition/OpenCE`).
