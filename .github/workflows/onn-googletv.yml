@@ -16,7 +16,8 @@ name: OpenCE Onn GoogleTV (armeabi-v7a)
 # (tools/onn_googletv_version.sh): <base>.<revision>, base the number of the
 # main project's newest release (its build-<base>) whose commit the build
 # contains, revision this fork's releases on that base (359.1, 359.2, 365.1):
-# the app's version name and the release's title (HALO_VERSION_NAME). n is
+# the app's version name and the release's title, which the README's
+# download badge shows (HALO_VERSION_NAME). n is
 # base * 100 + revision: the app's version code and the number the updater
 # compares, above the builds 101-127 of the workflow's old name
 # (androidtv.yml), whose installs then update to these. The last five
@@ -286,7 +287,7 @@ jobs:
             "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" "$network_version" > notes.md
           gh release create "$tag" "$HALO_RELEASE_ASSET_PREFIX-release.zip" "$HALO_RELEASE_ASSET_PREFIX-debug.zip" \
             halo-android-release.zip halo-android-debug.zip --target "$GITHUB_SHA" --latest \
-            --title "OpenCE Onn GoogleTV $HALO_VERSION_NAME (${GITHUB_SHA:0:7})" --notes-file notes.md
+            --title "$HALO_VERSION_NAME" --notes-file notes.md
 
       - name: Keep the last five
         if: ${{ github.ref == 'refs/heads/armeabi-v7a' }}
