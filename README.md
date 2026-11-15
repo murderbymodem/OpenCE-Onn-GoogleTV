@@ -1,4 +1,4 @@
-# OpenCE-AndroidTV - Halo: Combat Evolved for 32-bit AndroidTV / GoogleTV boxes
+# OpenCE Onn GoogleTV - Halo: Combat Evolved for the onn 4K GoogleTV boxes
 
 <p align="center">
   <img src="port/assets/icon/opence-icon.png" alt="OpenCE" width="128">
@@ -6,12 +6,33 @@
 
 
 <p align="center">
-  <a href="https://github.com/murderbymodem/OpenCE-AndroidTV/releases/latest"><img src="https://img.shields.io/github/v/release/murderbymodem/OpenCE-AndroidTV?label=Download%20AndroidTV&style=for-the-badge" alt="Download for AndroidTV"></a>
+  <a href="https://github.com/murderbymodem/OpenCE-AndroidTV/releases/latest"><img src="https://img.shields.io/github/v/release/murderbymodem/OpenCE-AndroidTV?label=Download%20onn%20GoogleTV&style=for-the-badge" alt="Download for onn GoogleTV"></a>
   <a href="https://github.com/OpenCommunityEdition/OpenCE/releases/latest"><img src="https://img.shields.io/github/v/release/OpenCommunityEdition/OpenCE?label=Download&style=for-the-badge" alt="Download"></a>
   <a href="https://halocombatevolved.com/"><img src="https://img.shields.io/badge/Play-in_browser-blue?style=for-the-badge" alt="Play in browser"></a>
   <a href="https://discord.gg/9gqcHyr5km"><img src="https://img.shields.io/badge/Discord-join-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
   <a href="https://zenith.hosting/host/opence"><img src="https://cdn.zenith.hosting/buttons/deploy-with-zenith.svg" alt="Deploy with Zenith" height="28"></a>
 </p>
+
+**OpenCE Onn GoogleTV** is a fork of [OpenCE](https://github.com/OpenCommunityEdition/OpenCE)
+that targets the **onn 4K Pro** and **onn 4K Plus** (2026) GoogleTV streaming devices.
+Their Android runs only 32-bit apps, so this fork builds the game as a 32-bit app
+(armeabi-v7a) and tunes it for their hardware. It follows the main project daily and
+plays online with it.
+
+## Hardware
+
+The onn boxes are the hardware this fork targets, tests and tunes for:
+
+| Device | CPU | GPU | RAM |
+| --- | --- | --- | --- |
+| onn 4K Pro Streaming Device Gen 2 (2026), Android 14 (32-bit) | Amlogic S905X5M, 4x Cortex-A55 | Arm Mali-G310 (OpenGL ES 3.2) | 3 GB |
+| onn 4K Plus Streaming Device (2026), Android 14 (32-bit) | Amlogic S905X5M, 4x Cortex-A55 | Arm Mali-G310 (OpenGL ES 3.2) | 2 GB |
+
+Other 32-bit Android TV and GoogleTV devices with an ARMv7 processor with NEON may
+work, but are not tested or tuned for. Reports from them are welcome in the
+[issues](https://github.com/murderbymodem/OpenCE-AndroidTV/issues).
+
+## About OpenCE
 
 **OpenCE** (Open Community Edition) is an open source port of the Halo: Combat Evolved decompilation (Halo CE) based on an early Xbox development build (2342) and forked from
 [bnunu/halo-1](https://github.com/bnunu/halo-1). The project aims to enhance the existing game and adds many features, such as 128-player multiplayer, online campaign co-op, mod packs, field-of-view settings, a server browser, peer-to-peer hosting, automatic map downloads, voice chat, support for Custom Edition maps and much more! 
@@ -43,26 +64,17 @@ data folder. Refer to [port/android/README.md](port/android/README.md). On
 the web, the page copies `maps/` out of the disc image into the browser's
 storage for the site - nothing is uploaded ([port/web/README.md](port/web/README.md)).
 
-## Hardware
-
-The 32-bit AndroidTV app has been tested on:
-
-| Device | CPU | GPU | RAM |
-| --- | --- | --- | --- |
-| onn 4K Pro Streaming Device Gen 2 (2026), Android 14 (32-bit) | Amlogic S905X5M, 4x Cortex-A55 | Arm Mali-G310 (OpenGL ES 3.2) | 3 GB |
-| onn 4K Plus Streaming Device (2026), Android 14 (32-bit) | Amlogic S905X5M, 4x Cortex-A55 | Arm Mali-G310 (OpenGL ES 3.2) | 2 GB |
-
 ## Download
 
 GitHub Actions builds the game for each commit. 
 
-Builds for latest release (the AndroidTV row is this fork's own release, built by
+Builds for latest release (the onn GoogleTV row is this fork's own release, built by
 [androidtv.yml](.github/workflows/androidtv.yml) for each commit to `armeabi-v7a`;
 the others are the main project's):
 
 | Platform | Release | Debug | Guide |
 | --- | --- | --- | --- |
-| **AndroidTV 32-bit** (armeabi-v7a, this fork) | [halo-android-release.zip](https://github.com/murderbymodem/OpenCE-AndroidTV/releases/latest/download/halo-android-release.zip) | [halo-android-debug.zip](https://github.com/murderbymodem/OpenCE-AndroidTV/releases/latest/download/halo-android-debug.zip) | [The 32-bit app](port/android/README.md#the-32-bit-app) |
+| **onn GoogleTV** (32-bit armeabi-v7a, this fork) | [halo-android-release.zip](https://github.com/murderbymodem/OpenCE-AndroidTV/releases/latest/download/halo-android-release.zip) | [halo-android-debug.zip](https://github.com/murderbymodem/OpenCE-AndroidTV/releases/latest/download/halo-android-debug.zip) | [The 32-bit app](port/android/README.md#the-32-bit-app) |
 | Linux | [halo-linux-release.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-linux-release.zip) | [halo-linux-debug.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-linux-debug.zip) | [Linux](port/linux/README.md) |
 | Windows | [halo-windows-release.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-windows-release.zip) | [halo-windows-debug.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-windows-debug.zip) | [Windows](port/windows/README.md) |
 | Android | [halo-android-release.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-android-release.zip) | [halo-android-debug.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-android-debug.zip) | [Android](port/android/README.md) |

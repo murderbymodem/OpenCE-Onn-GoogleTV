@@ -1,4 +1,4 @@
-name: Android TV (armeabi-v7a)
+name: OpenCE Onn GoogleTV (armeabi-v7a)
 
 # The 32-bit Android app (armeabi-v7a, port/android/README.md, "The 32-bit
 # app") of this fork, for Android TV boxes whose Android runs only 32-bit apps.
@@ -254,7 +254,7 @@ jobs:
           (cd dist/halo-android-debug && zip -qr "$GITHUB_WORKSPACE/halo-android-debug.zip" .)
           subject="$(printf '%s' "${MESSAGE:-$(git log -1 --format=%s)}" | head -n 1)"
           network_version="$(sed -n 's/^#define HALO_PORT_NETWORK_VERSION \([0-9]*\).*/\1/p' port/linux/include/halo_port_limits.h)"
-          printf '%s\n\nThe 32-bit Android app (armeabi-v7a) for Android TV boxes. Install halo-android-release.zip'"'"'s APK (adb install -r), or let the app update itself; halo-android-debug.zip'"'"'s app checks the game'"'"'s assertions, for reporting problems.\n\nCommit: %s\nBuild: %s\nNetwork version: %s\n' \
+          printf '%s\n\nOpenCE Onn GoogleTV: the 32-bit Android app (armeabi-v7a) for the onn 4K GoogleTV boxes. Install halo-android-release.zip'"'"'s APK (adb install -r), or let the app update itself; halo-android-debug.zip'"'"'s app checks the game'"'"'s assertions, for reporting problems.\n\nCommit: %s\nBuild: %s\nNetwork version: %s\n' \
             "$subject" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$GITHUB_SHA" \
             "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" "$network_version" > notes.md
           gh release create "$tag" halo-android-release.zip halo-android-debug.zip --target "$GITHUB_SHA" --latest \

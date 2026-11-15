@@ -1,7 +1,7 @@
-# OpenCE-AndroidTV: handoff notes
+# OpenCE Onn GoogleTV: handoff notes
 
-State of the 32-bit Android (armeabi-v7a) port in the fork
-`murderbymodem/OpenCE-AndroidTV`, branch `armeabi-v7a` (the default branch;
+State of OpenCE Onn GoogleTV, the 32-bit Android (armeabi-v7a) port in the
+fork whose repository is `murderbymodem/OpenCE-AndroidTV`, branch `armeabi-v7a` (the default branch;
 `main` is kept as a plain mirror of upstream `OpenCommunityEdition/OpenCE`).
 Test device: Onn 4K Pro Gen 2 (2026), Amlogic S905X5M (4x Cortex-A55), Mali-G310,
 OpenGL ES 3.2, Android 14, 32-bit userland, 3 GB RAM; and the Onn 4K Plus
