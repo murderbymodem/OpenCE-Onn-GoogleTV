@@ -335,6 +335,32 @@ notes are read when needed). `README.md` keeps the fork's lines (the user
 wants it to follow the main project's, other platforms' downloads
 included).
 
+## 2026-11-15: the fork's code in files of its own
+
+Where the fork's changes sat in the main project's busiest files, they moved
+to files only the fork has, leaving the smallest hooks:
+
+- The mixer's lock (`dsound_onn_googletv.inl`): `dsound_sdl.c` includes it
+  after `mixer_lock`, and its macro takes every
+  `pthread_mutex_lock(&mixer_lock)` there through the gate, so the main
+  project's lock calls are back as they were (34 edits -> 5). The mix's
+  own call is `mixer_take_to_mix()`. A copy of `dsound_sdl.c` without the
+  file (the harness's tests) falls back to the plain lock
+  (`__has_include`).
+- The turn buttons (`xinput_onn_googletv.c`): `xinput_sdl.c` only gives
+  `halo_port_gamepad(port)`.
+- The settings (`port_config_onn_googletv.h`): the 32-bit defaults
+  (`VSYNC_DEFAULT` and the like), and the fork's own settings, the last
+  entries of `port_config.c`'s table (`ONN_GOOGLETV_CONFIG_SETTINGS`;
+  `config_default_text` writes each in its section wherever it is listed).
+  `port_config.c` keeps one-word swaps of four defaults and the include
+  (97 changed lines -> 8).
+
+Left where they are: the renderer's (`d3d8_gl.c`: the shader cache's
+gating, the opaque window) and `tools/android_build.py`'s (the two guest
+images, LTO), both woven through the main project's code; and the 32-bit
+port itself, in files the main project seldom edits.
+
 ## Next steps
 
 Out of scope (decided 2026-11-13): busy co-op games with many players (the

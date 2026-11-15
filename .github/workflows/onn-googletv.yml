@@ -1,7 +1,7 @@
 name: OpenCE Onn GoogleTV (armeabi-v7a)
 
-# The 32-bit Android app (armeabi-v7a, port/android/README.md, "The 32-bit
-# app") of this fork, for Android TV boxes whose Android runs only 32-bit apps.
+# The 32-bit Android app (armeabi-v7a, docs/onn_googletv_android.md) of
+# this fork, for Android TV boxes whose Android runs only 32-bit apps.
 #
 # build: on each push to armeabi-v7a (and by hand), the release app,
 # compiled with the clang whose profiles pgo/ holds (PROFILE_LLVM_MAJOR in

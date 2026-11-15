@@ -95,54 +95,7 @@ a phone's GPU draws with time to spare, elsewhere the window's resolution */
 #define RESOLUTION_SCALING "\"native\""
 #endif
 
-/* display.object_shadows: as on the Xbox, but off in the 32-bit Android app,
-whose devices (TV boxes with a Mali GPU) spend some 7 ms of a frame on the
-shadows' changes of render target (port/linux/game/object_shadows.c) */
-#ifdef HALO_ARM32_GUEST
-#define OBJECT_SHADOWS_DEFAULT "false"
-#else
-#define OBJECT_SHADOWS_DEFAULT "true"
-#endif
-
-/* display.shader_cache: the desktop's, and the 32-bit Android app's, whose
-TV boxes take 50-90 ms to link a program; the 64-bit app links each run, as
-before (OpenGL ES drivers' binaries are not all to be trusted) */
-#if defined(HALO_ANDROID) && !defined(HALO_ARM32_GUEST)
-#define SHADER_CACHE_DEFAULT "false"
-#else
-#define SHADER_CACHE_DEFAULT "true"
-#endif
-
-/* audio.hrtf: the Xbox's directional filters, but off in the 32-bit Android
-app: on its TV boxes (a Cortex-A55) they are some 40% of the mixer's work,
-which with many sounds playing takes most of a core and keeps the game's
-thread waiting for the mixer (port/linux/src/dsound_sdl.c, mixer_gate) */
-#ifdef HALO_ARM32_GUEST
-#define AUDIO_HRTF_DEFAULT "false"
-#else
-#define AUDIO_HRTF_DEFAULT "true"
-#endif
-
-/* input.quick_turn_rate: off, but on in the 32-bit Android app, whose TV
-boxes are played with a gamepad whose back paddles nothing else uses */
-#ifdef HALO_ARM32_GUEST
-#define QUICK_TURN_RATE_DEFAULT "400.0"
-#else
-#define QUICK_TURN_RATE_DEFAULT "0.0"
-#endif
-
-/* display.vsync and display.max_fps: the 32-bit Android app's TV boxes draw
-a network game at 30 to 55 frames a second, and a steady 30 (the game's own
-tick rate), paced by max_fps with vsync off, plays better there than the
-display's refresh with dips; Android composites every frame, so it does not
-tear. Elsewhere, vsync. */
-#ifdef HALO_ARM32_GUEST
-#define VSYNC_DEFAULT "false"
-#define MAX_FPS_DEFAULT "30"
-#else
-#define VSYNC_DEFAULT "true"
-#define MAX_FPS_DEFAULT "0"
-#endif
+#include "port_config_onn_googletv.h" /* OpenCE Onn GoogleTV's defaults and settings */
 
 static const struct config_setting config_settings[] =
 {
@@ -175,12 +128,10 @@ static const struct config_setting config_settings[] =
 		"Columns of the 480-line picture: 0 for the display's shape, 640 for the\n"
 		"Xbox's 4:3." },
 	{ "display.vsync", _config_boolean, VSYNC_DEFAULT, "HALO_NO_VSYNC", _environment_set_is_false, _platform_all,
-		"Wait for the display between frames; false draws as fast as possible\n"
-		"(up to max_fps). Off by default in the 32-bit Android app." },
+		"Wait for the display between frames; false draws as fast as possible." },
 	{ "display.max_fps", _config_integer, MAX_FPS_DEFAULT, "HALO_MAX_FPS", _environment_value, _platform_all,
 		"With vsync off, the most frames a second: 0 for twice the display's\n"
-		"refresh rate, -1 for no limit (which can hang some Intel graphics).\n"
-		"30 by default in the 32-bit Android app, a steady 30 on TV boxes." },
+		"refresh rate, -1 for no limit (which can hang some Intel graphics)." },
 	{ "display.frames_in_flight", _config_integer, "3", "HALO_FRAMES_IN_FLIGHT", _environment_value,
 		_platform_desktop,
 		"The most frames the GPU has queued (1 to 8): a frame waits for the GPU\n"
@@ -267,13 +218,6 @@ static const struct config_setting config_settings[] =
 		"Draw the menus' and HUD's text with the fonts in port/assets/fonts\n"
 		"(Overpass) at the resolution the game draws at, and the menus' titles\n"
 		"from port/assets/titles; false draws the maps' bitmap fonts and titles." },
-	{ "display.object_shadows", _config_boolean, OBJECT_SHADOWS_DEFAULT, "HALO_OBJECT_SHADOWS", _environment_value,
-		_platform_all,
-		"The objects' shadows on the ground. false leaves them out, which saves\n"
-		"the most time of a frame on slow GPUs that draw in tiles (phones and\n"
-		"TV boxes): each object's shadow takes several changes of render\n"
-		"target. Taken up at once. Off by default in the 32-bit Android app,\n"
-		"for the TV boxes it runs on." },
 	{ "display.widescreen_loading", _config_boolean, "true", "HALO_WIDESCREEN_LOADING", _environment_value, _platform_all,
 		"Widen the stock loading screen, keeping its original picture, sweep\n"
 		"and glow trails. False keeps the central 4:3 framing." },
@@ -457,17 +401,6 @@ static const struct config_setting config_settings[] =
 		"The touch controls' swipe aiming gets a controller's aim assist: the\n"
 		"aim slows over a target and follows a moving one. false: none, as a\n"
 		"mouse (the bullets' own autoaim stays)." },
-	{ "input.quick_turn_rate", _config_real, QUICK_TURN_RATE_DEFAULT, "HALO_QUICK_TURN_RATE", _environment_value, _platform_all,
-		"Degrees a second the view turns while a gamepad's turn button (a back\n"
-		"paddle) is held, as the look stick held over at a high sensitivity,\n"
-		"720 at most; 0: the buttons do nothing." },
-	{ "input.quick_turn_left", _config_string, "\"\"", "HALO_QUICK_TURN_LEFT", _environment_value, _platform_all,
-		"The gamepad buttons that turn left, separated by commas: paddle1 to\n"
-		"paddle4, misc1, or buttonN (the log names a button's number when it is\n"
-		"first pressed). Empty: the left paddles." },
-	{ "input.quick_turn_right", _config_string, "\"\"", "HALO_QUICK_TURN_RIGHT", _environment_value, _platform_all,
-		"The gamepad buttons that turn right, as input.quick_turn_left. Empty:\n"
-		"the right paddles." },
 	{ "input.mouse_sensitivity", _config_real, "1.0", "HALO_MOUSE_SENSITIVITY", _environment_value, _platform_desktop,
 		"How far the view turns for the mouse's movement." },
 	{ "input.playstation_kernel_driver", _config_boolean, "false", "HALO_PLAYSTATION_KERNEL_DRIVER",
@@ -1375,15 +1308,6 @@ static const struct config_setting config_settings[] =
 		"Run without a window, drawing nothing." },
 	{ "debug.gl_debug", _config_boolean, "false", "HALO_GL_DEBUG", _environment_set_is_true, _platform_all,
 		"Report OpenGL errors in the log." },
-	{ "debug.gl_profile", _config_boolean, "false", "HALO_GL_PROFILE", _environment_set_is_true, _platform_android,
-		"Every 120 frames, the OpenGL ES functions that took the most time in\n"
-		"the driver, with their calls and time a frame, in the log (the 32-bit\n"
-		"ARM app; slower while on)." },
-	{ "debug.gl_refresh_state", _config_boolean, "false", "HALO_GL_REFRESH_STATE", _environment_set_is_true,
-		_platform_android,
-		"Set every OpenGL value again for each draw, whatever the renderer\n"
-		"remembers having set: slower, for finding whether a driver and the\n"
-		"renderer disagree on what is set (black or missing surfaces)." },
 	{ "debug.menu_open", _config_string, "\"\"", "HALO_MENU_OPEN", _environment_value, _platform_all,
 		"Start on this screen of the menus (port/assets/menus) instead of the main\n"
 		"menu, a player profile being edited; empty for the main menu." },
@@ -1418,8 +1342,7 @@ static const struct config_setting config_settings[] =
 		"Upload textures again every time they are used." },
 	{ "debug.sample_seconds", _config_real, "0.0", "HALO_SAMPLE", _environment_value, _platform_android,
 		"Log where every game thread is this often, in seconds (read by the\n"
-		"app, port/android/host/host_debug.c): its program counter and callers.\n"
-		"0.02 for a profile, whole seconds to find a hang; 0 never." },
+		"app, port/android/host/host_debug.c); 0 never." },
 	{ "debug.memory_watch", _config_boolean, "true", NULL, _environment_value, _platform_android,
 		"Notice the game's writes to cached textures and vertices by page\n"
 		"protection; false compares page contents once a frame instead, which is\n"
@@ -1440,6 +1363,7 @@ static const struct config_setting config_settings[] =
 		"Megabytes a recording keeps in memory, 4 to 1024: two halves, each\n"
 		"written out as a part when it fills." },
 #endif
+	ONN_GOOGLETV_CONFIG_SETTINGS
 };
 
 #define NUMBER_OF_CONFIG_SETTINGS (sizeof(config_settings) / sizeof(config_settings[0]))
