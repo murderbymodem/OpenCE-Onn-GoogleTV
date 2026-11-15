@@ -344,24 +344,42 @@ jobs:
             echo "::error::no OPENCE_ONN_GOOGLETV_KEYSTORE_BASE64 or OPENCE_ONN_GOOGLETV_KEYSTORE_PASSWORD secret: the apps cannot be signed with the app's key"
             exit 1
           fi
-          printf '%s' "$KEYSTORE" | base64 -d > "$RUNNER_TEMP/key.keystore"
+          # (the secret's text, line breaks and all: Windows's CRLF taken out)
+          if ! printf '%s' "$KEYSTORE" | tr -d '\r\n ' | base64 -d > "$RUNNER_TEMP/key.keystore"; then
+            echo "::error::OPENCE_ONN_GOOGLETV_KEYSTORE_BASE64 is not base64 text"
+            exit 1
+          fi
+          echo "key: $(wc -c < "$RUNNER_TEMP/key.keystore") bytes"
+          echo "build tools: $(ls "$ANDROID_HOME"/build-tools | sort -V | tail -n 1)"
           # signs every APK under dist/ with the key, in place: the build signed it
           # with Gradle's debug key, which is taken out first
           tools="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)"
           for apk in dist/*/*.apk; do
             zip -q -d "$apk" 'META-INF/*.SF' 'META-INF/*.RSA' 'META-INF/*.EC' 'META-INF/MANIFEST.MF' > /dev/null 2>&1 || true
+            echo "$apk: aligning"
             "$tools/zipalign" -f -P 16 4 "$apk" "$apk.aligned"
+            echo "$apk: signing"
             "$tools/apksigner" sign --ks "$RUNNER_TEMP/key.keystore" --ks-key-alias "$KEY_ALIAS" \
               --ks-pass env:KEYSTORE_PASSWORD --key-pass env:KEYSTORE_PASSWORD --v2-signing-enabled true --out "$apk" "$apk.aligned"
             rm -f "$apk.aligned" "$apk.idsig"
-            # (signed by this key alone, the one the installed apps have)
-            certificate="$("$tools/apksigner" verify --print-certs "$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
-            signers="$("$tools/apksigner" verify --print-certs "$apk" | grep -c '^Signer #[0-9]* certificate DN')"
+            # (signed by this key alone, the one the installed apps have; the
+            # verifier's own words when it refuses the APK)
+            echo "$apk: verifying"
+            if ! verified="$("$tools/apksigner" verify --print-certs "$apk" 2>&1)"; then
+              echo "::error::$apk does not verify after signing"
+              printf '%s\n' "$verified"
+              exit 1
+            fi
+            certificate="$(printf '%s\n' "$verified" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+            signers="$(printf '%s\n' "$verified" | grep -c '^Signer #[0-9]* certificate DN' || true)"
             if [ "$certificate" != "$KEY_CERTIFICATE_SHA256" ] || [ "$signers" != 1 ]; then
               echo "::error::$apk is signed by $certificate ($signers signers), not the app's key $KEY_CERTIFICATE_SHA256: a different key in the secret? Its apps would not install over the installed ones"
               exit 1
             fi
-            "$tools/zipalign" -c -P 16 4 "$apk"
+            if ! "$tools/zipalign" -c -P 16 4 "$apk" > /dev/null; then
+              echo "::error::$apk is not aligned after signing"
+              exit 1
+            fi
             echo "$apk: signed, $certificate"
           done
           rm -f "$RUNNER_TEMP/key.keystore"
