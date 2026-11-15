@@ -13,8 +13,8 @@
 [bnunu/halo-1](https://github.com/bnunu/halo-1).
 
 This fork builds OpenCE as a 32-bit Android app (armeabi-v7a) for the 2026
-onn 4K Pro and onn 4K Plus GoogleTV boxes, whose Android runs only 32-bit apps
-and so cannot install the main project's 64-bit Android build. It follows the
+onn 4K Pro and onn 4K Plus GoogleTV boxes, as these boxes run 32-bit Android
+and cannot install the main project's 64-bit Android build. It follows the
 main project closely: every six hours it takes in each new OpenCE release, and
 builds and publishes it under the same release number, with the defaults
 tuned for the boxes' hardware. Nothing that a network game depends on is
