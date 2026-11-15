@@ -13,9 +13,10 @@ name: OpenCE Onn GoogleTV (armeabi-v7a)
 # download), the newest marked latest: the app's self-updater
 # (Updater.java) of the builds made here takes the one of its own kind from
 # this repository. The players' version follows the main project's releases
-# (tools/onn_googletv_version.sh): <base>.<revision>, base the number of the
+# (tools/onn_googletv_version.sh): base, then <base>.<n>, base the number of the
 # main project's newest release (its build-<base>) whose commit the build
-# contains, revision this fork's releases on that base (359.1, 359.2, 365.1):
+# contains: the main project's release itself is just the base (365), and
+# this fork's own releases after it on that base are 365.1, 365.2:
 # the app's version name and the release's title, which the README's
 # download badge shows (HALO_VERSION_NAME). n is
 # base * 100 + revision: the app's version code and the number the updater
@@ -23,10 +24,14 @@ name: OpenCE Onn GoogleTV (armeabi-v7a)
 # (androidtv.yml), whose installs then update to these. The last five
 # releases are kept.
 #
-# sync: every day (and by hand, with the sync input), the main project's new commits on its main
-# branch are merged into armeabi-v7a, so that this app stays able to play with
-# the main project's (machines of different network versions do not play
-# together: port/linux/include/halo_port_limits.h), and then built. A merge
+# sync: every six hours (and by hand, with the sync input), the main project's
+# newest release (its newest build-<n> tag: a build of its main that passed
+# on every platform) is merged into armeabi-v7a when this branch does not
+# have it yet, so that this app stays able to play with the main project's
+# (machines of different network versions do not play together:
+# port/linux/include/halo_port_limits.h), and then built: its version is then
+# exactly <n>, the main project's (tools/onn_googletv_version.sh). Its commits
+# after its last release wait for its next one. A merge
 # that conflicts is not pushed: the run fails with an error saying so (and
 # opens an issue, where the repository has issues). GitHub's own token cannot
 # push a merge that changes .github/workflows; the SYNC_TOKEN secret, a token
@@ -47,11 +52,12 @@ on:
   workflow_dispatch:
     inputs:
       sync:
-        description: "Merge the main project's new commits first (then build)"
+        description: "Merge the main project's newest release first (then build)"
         type: boolean
         default: false
   schedule:
-    - cron: "41 7 * * *"
+    # (every six hours, off the hour, which GitHub delays the most)
+    - cron: "17 */6 * * *"
 
 concurrency:
   group: onn-googletv-${{ github.event_name == 'schedule' && 'sync' || github.ref }}
@@ -86,7 +92,7 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.SYNC_TOKEN || github.token }}
 
-      - name: Merge the main project's new commits
+      - name: Merge the main project's newest release
         id: merge
         run: |
           # a problem: the run's error (GitHub mails a failed scheduled run),
@@ -101,31 +107,38 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git remote add upstream "$UPSTREAM"
-          git fetch --no-tags upstream "$UPSTREAM_BRANCH"
-          if git merge-base --is-ancestor "upstream/$UPSTREAM_BRANCH" HEAD; then
-            echo "already has every commit of the main project's $UPSTREAM_BRANCH"
+          # the main project's newest release: its highest build-<n> tag
+          release="$(git ls-remote --tags upstream 'build-*' | sed -n 's|.*refs/tags/\(build-[0-9]*\)$|\1|p' |
+            sort -t- -k2 -n | tail -n 1)"
+          if [ -z "$release" ]; then
+            echo "::error::no build-<n> tag in $UPSTREAM"
+            exit 1
+          fi
+          git fetch --no-tags upstream "refs/tags/$release:refs/remotes/upstream/release"
+          if git merge-base --is-ancestor upstream/release HEAD; then
+            echo "already has the main project's newest release, $release"
             echo "merged=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          count="$(git rev-list --count "HEAD..upstream/$UPSTREAM_BRANCH")"
-          if ! git merge --no-edit -m "Merge the main project's $UPSTREAM_BRANCH ($count new commits)" "upstream/$UPSTREAM_BRANCH"; then
+          count="$(git rev-list --count HEAD..upstream/release)"
+          if ! git merge --no-edit -m "Merge the main project's $release ($count new commits)" upstream/release; then
             git merge --abort
-            printf 'The daily sync could not merge %s new commits of %s (%s) into %s: they conflict with this fork'"'"'s changes.\n\nMerge them by hand (git fetch %s %s, git merge FETCH_HEAD, resolve, push).\n\nRun: %s\n' \
-              "$count" "$UPSTREAM" "$UPSTREAM_BRANCH" "$BRANCH" "$UPSTREAM" "$UPSTREAM_BRANCH" \
+            printf 'The sync could not merge the main project'"'"'s %s (%s new commits of %s) into %s: they conflict with this fork'"'"'s changes.\n\nMerge them by hand (git fetch %s refs/tags/%s, git merge FETCH_HEAD, resolve, push).\n\nRun: %s\n' \
+              "$release" "$count" "$UPSTREAM" "$BRANCH" "$UPSTREAM" "$release" \
               "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > issue.md
-            report "Merging the main project's $UPSTREAM_BRANCH conflicts" issue.md
+            report "Merging the main project's $release conflicts" issue.md
             exit 1
           fi
           if ! git push origin "HEAD:$BRANCH" 2> push.log; then
             cat push.log
             if grep -q "workflow" push.log; then
               printf 'The main project changed its workflows (.github/workflows), which GitHub'"'"'s own token cannot push.\n\nAdd a SYNC_TOKEN secret (a fine-grained token with Contents and Workflows read and write access to this repository), or merge %s %s into %s by hand.\n\nRun: %s\n' \
-                "$UPSTREAM" "$UPSTREAM_BRANCH" "$BRANCH" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > issue.md
-              report "The daily sync cannot push the main project's changes" issue.md
+                "$UPSTREAM" "$release" "$BRANCH" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > issue.md
+              report "The sync cannot push the main project's changes" issue.md
             fi
             exit 1
           fi
-          echo "merged $count commits"
+          echo "merged $release ($count commits)"
           echo "merged=true" >> "$GITHUB_OUTPUT"
 
       # (a push with GitHub's own token starts no workflow; one with
