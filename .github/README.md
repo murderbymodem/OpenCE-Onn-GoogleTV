@@ -7,10 +7,6 @@
 
 <p align="center">
   <a href="https://github.com/murderbymodem/OpenCE-Onn-GoogleTV/releases/latest"><img src="https://img.shields.io/github/v/release/murderbymodem/OpenCE-Onn-GoogleTV?label=Download%20Onn%20GoogleTV&display_name=release&style=for-the-badge" alt="Download for Onn GoogleTV"></a>
-  <a href="https://github.com/OpenCommunityEdition/OpenCE/releases/latest"><img src="https://img.shields.io/github/v/release/OpenCommunityEdition/OpenCE?label=Download&style=for-the-badge" alt="Download"></a>
-  <a href="https://halocombatevolved.com/"><img src="https://img.shields.io/badge/Play-in_browser-blue?style=for-the-badge" alt="Play in browser"></a>
-  <a href="https://discord.gg/9gqcHyr5km"><img src="https://img.shields.io/badge/Discord-join-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
-  <a href="https://zenith.hosting/host/opence"><img src="https://cdn.zenith.hosting/buttons/deploy-with-zenith.svg" alt="Deploy with Zenith" height="28"></a>
 </p>
 
 **OpenCE** (Open Community Edition) is an open source port of the Halo: Combat Evolved decompilation (Halo CE) based on an early Xbox development build (2342) and forked from
@@ -24,24 +20,6 @@ The game runs natively on Windows, Linux, Android **(now including 32-bit armeab
 ## A copy of Halo: Combat Evolved is required
 
 OpenCE does not include the game data. You **must provide your own Xbox disc image** (`.xiso` or `.iso`) of Halo: Combat Evolved. Every version of the game works. The maps of the European (PAL) version were made for a slower console - the game changes them to play as the North American (NTSC) maps do, so players of the two versions can play together.
-
-1. Start the game (`halo.exe` on Windows and `halo` on Linux). 
-2. At the first start you will get a pop up message asking for the disc image. Select it in the
-   file picker. On Linux and Windows, a disc image (`.iso` or `.xiso`) next
-   to the executable is used without the file picker. Where no file picker
-   can be shown (on Linux, without the desktop portal or `zenity`), the game
-   says to put the disc image next to the executable, and stops.
-3. The game extracts the `maps` folder. Then the game starts.
-
-The `maps` folder holds the Xbox maps only. If it holds Halo PC's maps
-instead (a Halo PC or Custom Edition install's `maps` folder), the game says
-so and stops: Custom Edition maps go in `custom_maps` folder, beside `maps` folder.
-
-On Linux and Windows, the game puts `maps` next to the executable. On
-Android, copy the disc image to the phone first. The app puts `maps/` in its
-data folder. Refer to [port/android/README.md](../port/android/README.md). On
-the web, the page copies `maps/` out of the disc image into the browser's
-storage for the site - nothing is uploaded ([port/web/README.md](../port/web/README.md)).
 
 ## Hardware
 
@@ -61,44 +39,20 @@ untested.
 
 ## Download
 
-GitHub Actions builds the game for each commit. 
-
-Builds for latest release (the Onn GoogleTV row is this fork's own release, built by
-[onn-googletv.yml](workflows/onn-googletv.yml) for each commit to `armeabi-v7a`;
-the others are the main project's):
+GitHub Actions builds the app for each commit to `armeabi-v7a`
+([onn-googletv.yml](workflows/onn-googletv.yml)) and publishes it as a release:
 
 | Platform | Release | Debug | Guide |
 | --- | --- | --- | --- |
-| **Onn GoogleTV 32-bit** (armeabi-v7a, this fork) | [opence-onn-googletv-release.zip](https://github.com/murderbymodem/OpenCE-Onn-GoogleTV/releases/latest/download/opence-onn-googletv-release.zip) | [opence-onn-googletv-debug.zip](https://github.com/murderbymodem/OpenCE-Onn-GoogleTV/releases/latest/download/opence-onn-googletv-debug.zip) | [The 32-bit app](../docs/onn_googletv_android.md) |
-| Linux | [halo-linux-release.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-linux-release.zip) | [halo-linux-debug.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-linux-debug.zip) | [Linux](../port/linux/README.md) |
-| Windows | [halo-windows-release.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-windows-release.zip) | [halo-windows-debug.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-windows-debug.zip) | [Windows](../port/windows/README.md) |
-| Android | [halo-android-release.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-android-release.zip) | [halo-android-debug.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-android-debug.zip) | [Android](../port/android/README.md) |
-| Web | [opencommunityedition.com](http://www.opencommunityedition.com/) (or [halo-web-release.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-web-release.zip) for your own server) | [halo-web-debug.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-web-debug.zip) | [Web](../port/web/README.md) |
+| **Onn GoogleTV 32-bit** (armeabi-v7a) | [opence-onn-googletv-release.zip](https://github.com/murderbymodem/OpenCE-Onn-GoogleTV/releases/latest/download/opence-onn-googletv-release.zip) | [opence-onn-googletv-debug.zip](https://github.com/murderbymodem/OpenCE-Onn-GoogleTV/releases/latest/download/opence-onn-googletv-debug.zip) | [The 32-bit app](../docs/onn_googletv_android.md) |
 
-
-Release build is recommended for regular play. 
+Release build is recommended for regular play.
 
 The debug build stops at the first failed check (assertion) and writes it to the log, so use it when you want to find and report problems.
 
-The game updates itself. At start-up it looks for a newer release, and asks
-if you want to install it. Refer to "Updates" in
-[port/linux/README.md](../port/linux/README.md#updates). The web site offers
-each new build when it is out.
-
-Each build of the `main` branch that passes on all four platforms is a new
-release, and the web site then plays it. The [Releases](https://github.com/OpenCommunityEdition/OpenCE/releases)
-page keeps the last five releases. If the latest build has a problem, get
-an older build from that page.
-
-Each release also has `SHA256SUMS`, the SHA-256 of each of its files, and
-`SHA256SUMS.sig`, that file's Ed25519 signature by the project's release
-key, whose public key is [deploy/release-key.pub](../deploy/release-key.pub).
-`sha256sum -c --ignore-missing SHA256SUMS` checks the downloads, and
-`tools/release_sign.sh verify SHA256SUMS` (OpenSSL 3) the signature.
-
-The Linux README also covers the controls, every setting and the multiplayer features. These are almost the same on all platforms. The settings are in `config.toml` next to the game, and many are in the menus too.
-
-The Arch-based distribution release is available on the [AUR](https://aur.archlinux.org/packages/opence-bin).
+The app updates itself. At start-up it looks for a newer release, and asks
+if you want to install it. The [Releases](https://github.com/murderbymodem/OpenCE-Onn-GoogleTV/releases)
+page keeps the last five releases.
 
 ## Credits
 
