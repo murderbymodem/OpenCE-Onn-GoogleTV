@@ -1,5 +1,8 @@
 # OpenCE Onn GoogleTV: handoff notes
 
+What to do when the workflow sends an email or opens an issue (conflicts,
+failed builds, the token, rollbacks): [onn_googletv_runbook.md](onn_googletv_runbook.md).
+
 State of the 32-bit Android (armeabi-v7a) port in the fork
 `murderbymodem/OpenCE-Onn-GoogleTV` (renamed from OpenCE-AndroidTV on 2026-11-15), branch `armeabi-v7a` (the default branch;
 `main` is kept as a plain mirror of upstream `OpenCommunityEdition/OpenCE`).
@@ -270,6 +273,52 @@ converted), which the Onn runs without. Suggested test, no build needed:
 `adb shell setprop debug.halo.render_chip 3`. If it helps and draws
 correctly, add the box to `android_chip.c` from its `getprop`.
 
+## 2026-11-15: the fork's name, versions, and a workflow that looks after itself
+
+Pull requests 9-15 of the renamed repository; what to do when the workflow
+asks is in [onn_googletv_runbook.md](onn_googletv_runbook.md).
+
+- Name: the project is "OpenCE Onn GoogleTV", the repository
+  `OpenCE-Onn-GoogleTV`, the workflow `onn-googletv.yml`, these notes
+  `onn_googletv_handoff.md`. The README keeps upstream's layout (the user
+  chose this so that merging upstream's README stays easy): title, badge,
+  download row, and the hardware section's notes (about 30 fps in small
+  multiplayer matches with dips; high player counts and modded co-op may not
+  be playable; older onn and other 32-bit boxes untested).
+- Versions: `tools/onn_googletv_version.sh`. A release that merges
+  upstream's build N is named N (365); the fork's own releases after it on
+  that base N.1, N.2. The internal number (version code, `build-<n>` tag,
+  what the updater compares) is N * 100 + revision (36501); it must only
+  rise, since Android installs no lower version code. Older releases were
+  101-127 and 359.1/359.2 (the first scheme).
+- Sync: every six hours, upstream's newest release tag, not the tip of
+  main, so the versions name exactly what they hold.
+- Archives: `opence-onn-googletv-release.zip` / `-debug.zip`
+  (`HALO_RELEASE_ASSET_PREFIX` in `build.gradle` and `Updater.java`,
+  defaulting to upstream's `halo-android`). The old-named copies were dropped
+  after 365.1 (both boxes had updated; the Broadcom reporter's box, if still
+  on 125, needs one manual install).
+- Signing: the build job has no secret; the sign job (no checkout) signs
+  with apksigner and checks the certificate. The secrets are fork-named
+  (upstream's `build.yml` reads `ANDROID_KEYSTORE_*`, and any upstream
+  workflow arriving with a merge would be active here); the old ones were
+  deleted. Two traps found on the way: a failing check hid apksigner's
+  message, and build tools 37 (the runner's) word signer lines "V3.0 Signer:
+  certificate SHA-256 digest:" where 35/36 wrote "Signer #1 certificate
+  SHA-256 digest:"; the check now reads any digest line.
+- Self-maintenance (pull request 15): a commit without a release is built
+  again by the sync, twice at most; a keepalive note after 45 days without
+  a commit (GitHub disables schedules after 60); an issue two weeks before
+  the sync token expires (GitHub's `github-authentication-token-expiration`
+  response header); toolchain retries and a fallback to the runner's clang;
+  the rollback input (rebuild an earlier release's commit as the next
+  number; refused before 359.1); `tools/test_host_alignment.py` in every
+  build.
+- Decided: nothing is offered upstream (the user prefers not to send fixes
+  whose need for the 64-bit app is unproven). What the workflow cannot fix:
+  a conflicting merge, a release that does not build here, a release that
+  builds but misbehaves on the boxes (roll back), and the token's renewal.
+
 ## Next steps
 
 Out of scope (decided 2026-11-13): busy co-op games with many players (the
@@ -328,12 +377,15 @@ Multiplayer rule: change nothing in the simulation or network messages; keep
   refuses any key whose certificate is not SHA-256 `dc9787ca...2fec58`
   (`KEY_CERTIFICATE_SHA256`), then publishes. The guest's clang is
   `PROFILE_LLVM_MAJOR` of `tools/linux_build.py`, upstream's profiles' own.
-- Repository: default branch `armeabi-v7a`; `main` mirrors upstream and
-  builds nothing; Pages off; issues off (the sync reports problems as a failed
-  run's error, and as an issue only if issues are turned on). Upstream's
-  `build.yml` and `server-image.yml` stay in the tree (so merges do not
-  conflict) but are disabled in the Actions settings. Auto-update verified on
-  the device (build 14 -> CI build).
+- Repository: `murderbymodem/OpenCE-Onn-GoogleTV` (renamed from
+  OpenCE-AndroidTV; GitHub redirects the old name, the API too, and the
+  updater follows redirects). Default branch `armeabi-v7a`; `main` mirrors
+  upstream and builds nothing; Pages off; issues on (the workflow opens them:
+  conflicts, the sync token). Upstream's `build.yml` and `server-image.yml`
+  stay in the tree (so merges do not conflict) but are disabled in the
+  Actions settings: never enable them. Auto-update verified on both boxes
+  (build 14 -> CI build; build 125/127 -> 359.1; 365 -> 365.1, the first app
+  signed by the separate sign job).
 - The updater (`Updater.java`) checks `BuildConfig.HALO_UPDATE_REPOSITORY`
   (HALO_UPDATE_REPOSITORY, else GITHUB_REPOSITORY, else upstream).
 - Signing key: the user holds it (the keystore, its base64 and password;

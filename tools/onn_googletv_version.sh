@@ -5,7 +5,8 @@
 #
 #   tools/onn_googletv_version.sh UPSTREAM_URL EXISTING_TAGS_FILE
 #
-# prints "<code> <name>": name is the players' number (the app's version name,
+# prints "<code> <name> <based on>": based on is the main project's release
+# the build contains (0: none found); name is the players' number (the app's version name,
 # the release's title): the base alone for the first release on it, which
 # is the main project's release itself (365), then <base>.<n> for the fork's
 # own releases after it on the same base (365.1, 365.2), until the build
@@ -46,6 +47,7 @@ done < <(git ls-remote --tags "$upstream" 'build-*' | grep -v '\^{}$')
 
 # (none found: the last release's base; builds before this scheme, at most
 # 999, have none)
+contains=$base
 if (( base == 0 )); then
 	base=$(( highest >= 1000 ? highest / 100 : 1 ))
 	echo "no release of the main project found in HEAD: base $base" >&2
@@ -63,9 +65,13 @@ base=$(( code / 100 ))
 # (the bases before this naming, up to 359, kept <base>.<revision>: 359.1 is
 # already a release, so 359's next is 359.2)
 if (( base <= 359 )); then
-	echo "$code $base.$revision"
+	name="$base.$revision"
 elif (( revision == 1 )); then
-	echo "$code $base"
+	name="$base"
 else
-	echo "$code $base.$(( revision - 1 ))"
+	name="$base.$(( revision - 1 ))"
 fi
+# (a rebuild of an earlier commit, a rollback, takes the next number on the
+# newest base, so that the installed apps take it as an update, but names
+# the release it contains)
+echo "$code $name $contains"
