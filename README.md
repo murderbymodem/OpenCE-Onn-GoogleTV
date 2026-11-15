@@ -56,7 +56,7 @@ Both hold about 30 fps in small multiplayer matches, with occasional dips below
 that. Some of the main project's features, such as high player counts and
 modded co-op campaigns, may not be playable on this hardware.
 
-Older onn boxes and other 32-bit Android TV and GoogleTV boxes may work, but are
+Older onn boxes and other 32-bit AndroidTV and GoogleTV boxes may work, but are
 untested.
 
 ## Download
