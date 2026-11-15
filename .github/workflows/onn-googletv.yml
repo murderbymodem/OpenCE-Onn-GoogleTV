@@ -370,12 +370,16 @@ jobs:
               printf '%s\n' "$verified"
               exit 1
             fi
-            certificate="$(printf '%s\n' "$verified" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
-            signers="$(printf '%s\n' "$verified" | grep -c '^Signer #[0-9]* certificate DN' || true)"
-            if [ "$certificate" != "$KEY_CERTIFICATE_SHA256" ] || [ "$signers" != 1 ]; then
-              echo "::error::$apk is signed by $certificate ($signers signers), not the app's key $KEY_CERTIFICATE_SHA256: a different key in the secret? Its apps would not install over the installed ones"
+            # (every certificate the verifier names, however a version of
+            # the build tools words its lines: "Signer #1 certificate SHA-256
+            # digest:", "V3.0 Signer: certificate SHA-256 digest:")
+            certificates="$(printf '%s\n' "$verified" | sed -n 's/.*certificate SHA-256 digest: *\([0-9a-f]*\).*/\1/p' | sort -u)"
+            if [ "$certificates" != "$KEY_CERTIFICATE_SHA256" ]; then
+              echo "::error::$apk is signed by ${certificates:-no certificate the verifier names}, not the app's key $KEY_CERTIFICATE_SHA256: a different key in the secret? Its apps would not install over the installed ones"
+              printf '%s\n' "$verified"
               exit 1
             fi
+            certificate="$certificates"
             if ! "$tools/zipalign" -c -P 16 4 "$apk" > /dev/null; then
               echo "::error::$apk is not aligned after signing"
               exit 1
