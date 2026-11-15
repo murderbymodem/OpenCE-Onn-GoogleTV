@@ -296,8 +296,9 @@ asks is in [onn_googletv_runbook.md](onn_googletv_runbook.md).
   releases a base at most); it must only
   rise, since Android installs no lower version code. Older releases were
   101-127 and 359.1/359.2 (the first scheme).
-- Sync: every six hours, upstream's newest release tag, not the tip of
-  main, so the versions name exactly what they hold.
+- Sync: upstream's newest release tag, not the tip of main, so the
+  versions name exactly what they hold; every six hours at first, every
+  hour since (below).
 - Archives: `opence-onn-googletv-release.zip` / `-debug.zip`
   (`HALO_RELEASE_ASSET_PREFIX` in `build.gradle` and `Updater.java`,
   defaulting to upstream's `halo-android`). The old-named copies were dropped
@@ -426,6 +427,28 @@ of the night was merged (or, for pull request 9, superseded by the user's
 own rename) and the user deletes them on GitHub, which refuses Claude
 sessions' branch deletions.
 
+## 2026-11-15: the sync every hour
+
+The sync ran every six hours; it now runs every hour (`17 * * * *`), so the
+boxes follow a release of upstream that raises the network version within
+about an hour (plus the build's ~5 minutes, and the app's restart: its
+updater asks at start-up), not up to six. Upstream's network version moved
+14 times from 19 October to 12 November (31 -> 44), reaching players with
+its releases (one to three a day then; 44 came with build 355). A box of
+another version sees those games at the bottom of the server browser and
+cannot join them. A sync that finds nothing takes ~20 seconds and the
+repository is public, so the hourly runs cost nothing; builds start only
+for new releases. GitHub's schedule is best-effort (it skipped the 06:17
+sync of 2026-11-15 and ran the old daily one hours late): hourly, a missed
+run costs an hour.
+
+So that hourly runs do not mail every hour: a conflicting merge, or a push
+GitHub's token refuses, fails the run (GitHub's mail) and opens its issue
+the first time only; while the issue is open the later syncs warn and
+succeed, and a sync that has upstream's newest release closes the issues.
+The retry of an unbuilt commit (three tries, then once a day) and the other
+issues (the token, the failing build) were already once each.
+
 ## Next steps
 
 Out of scope (decided 2026-11-13): busy co-op games with many players (the
@@ -469,7 +492,7 @@ Multiplayer rule: change nothing in the simulation or network messages; keep
   (`HALO_RELEASE_ASSET_PREFIX`; until 365.1 also as `halo-android-*.zip`,
   the names the updater of builds 127 and before asks for: those apps no
   longer update by themselves, adb install -r once),
-  latest, last five kept. Every six hours (:17 past 00, 06, 12, 18 UTC) the
+  latest, last five kept. Every hour (at :17, as GitHub's schedule allows) the
   sync merges upstream's newest release (its highest `build-<n>` tag, not
   the tip of main), so each sync's release is exactly `<n>` (issue on
   conflict). Upstream's Build and Server

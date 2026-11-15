@@ -29,7 +29,7 @@ name: OpenCE Onn GoogleTV (armeabi-v7a)
 # (androidtv.yml), whose installs then update to these. The last five
 # releases are kept.
 #
-# sync: every six hours (and by hand, with the sync input), the main project's
+# sync: every hour (and by hand, with the sync input), the main project's
 # newest release (its newest build-<n> tag: a build of its main that passed
 # on every platform) is merged into armeabi-v7a when this branch does not
 # have it yet, so that this app stays able to play with the main project's
@@ -38,7 +38,9 @@ name: OpenCE Onn GoogleTV (armeabi-v7a)
 # exactly <n>, the main project's (tools/onn_googletv_version.sh). Its commits
 # after its last release wait for its next one. A merge
 # that conflicts is not pushed: the run fails with an error saying so (and
-# opens an issue, where the repository has issues). GitHub's own token cannot
+# opens an issue, where the repository has issues; while that issue is open,
+# the later syncs only warn, so that GitHub does not mail every hour, and a
+# sync that gets through closes it). GitHub's own token cannot
 # push a merge that changes .github/workflows; the OPENCE_ONN_GOOGLETV_SYNC_TOKEN
 # secret, a token with contents and workflows write access to this
 # repository, can, and its pushes start the build themselves. A token that no
@@ -75,8 +77,8 @@ on:
         type: string
         default: ""
   schedule:
-    # (every six hours, off the hour, which GitHub delays the most)
-    - cron: "17 */6 * * *"
+    # (every hour, off the hour, which GitHub delays the most)
+    - cron: "17 * * * *"
 
 concurrency:
   group: onn-googletv-${{ github.event_name == 'schedule' && 'sync' || github.ref }}
@@ -154,13 +156,33 @@ jobs:
         id: merge
         run: |
           # a problem: the run's error (GitHub mails a failed scheduled run),
-          # and an issue where the repository has issues (forks start without)
+          # and an issue where the repository has issues (forks start without).
+          # While its issue is open, the later syncs (every hour) only warn
+          # and succeed, so that the problem is mailed once, not every hour
+          has_issues="$(gh api "repos/$GITHUB_REPOSITORY" --jq .has_issues)"
+          open_issues() {
+            if [ "$has_issues" = "true" ]; then
+              gh issue list --state open --search "\"$1\" in:title" --json number,title --jq ".[] | select(.title | startswith(\"$1\")) | .number"
+            fi
+          }
           report() {
+            if [ -n "$(open_issues "$1")" ]; then
+              echo "::warning title=$1::$(head -n 1 "$2") (its issue is open)"
+              exit 0
+            fi
             echo "::error title=$1::$(head -n 1 "$2")"
-            if [ "$(gh api "repos/$GITHUB_REPOSITORY" --jq .has_issues)" = "true" ] &&
-              [ -z "$(gh issue list --state open --search "\"$1\" in:title" --json number --jq '.[].number')" ]; then
+            if [ "$has_issues" = "true" ]; then
               gh issue create --title "$1" --body-file "$2" || true
             fi
+            exit 1
+          }
+          # the sync got through: the issues of the problems above are closed
+          solved() {
+            for title in "Merging the main project's" "The sync cannot push the main project's changes"; do
+              for issue in $(open_issues "$title" || true); do
+                gh issue close "$issue" --comment "$1" || true
+              done
+            done
           }
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -175,6 +197,7 @@ jobs:
           git fetch --no-tags upstream "refs/tags/$release:refs/remotes/upstream/release"
           if git merge-base --is-ancestor upstream/release HEAD; then
             echo "already has the main project's newest release, $release"
+            solved "$BRANCH has the main project's newest release, $release."
             echo "merged=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -185,7 +208,6 @@ jobs:
               "$release" "$count" "$UPSTREAM" "$BRANCH" "$UPSTREAM" "$release" \
               "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > issue.md
             report "Merging the main project's $release conflicts" issue.md
-            exit 1
           fi
           if ! git push origin "HEAD:$BRANCH" 2> push.log; then
             cat push.log
@@ -196,6 +218,7 @@ jobs:
             fi
             exit 1
           fi
+          solved "The sync merged the main project's $release into $BRANCH."
           echo "merged $release ($count commits)"
           echo "merged=true" >> "$GITHUB_OUTPUT"
 
