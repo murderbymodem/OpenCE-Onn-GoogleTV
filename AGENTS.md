@@ -57,11 +57,7 @@ python tools/ci_build.py linux release   # what CI builds
   `port/android/host_imports.list` and `port/android/guest/runtime/guest_host.h`,
   and only the SDL functions `guest_sdl.c` bridges. Run `ninja android`
   after changing anything it compiles: `port/linux/src`, `port/linux/game`,
-  `port/android`, `source/`, the build scripts. `configure.py
-  --android-abis armeabi-v7a` (or `arm64-v8a,armeabi-v7a`) also builds the
-  32-bit app: the guest is then 32-bit ARM code in a 32-bit app, with the
-  same AArch64 system call interface, which the host translates
-  (`port/android/host/host_syscall.c`).
+  `port/android`, `source/`, the build scripts.
 - Web: the game is `wasm32` (also ILP32), run on a Web Worker; calls must
   match their callee's type exactly (the link fails on a mismatch), and
   WebGL 2 is ES 3.0. Run `ninja web` after changing what it compiles (as
@@ -73,9 +69,7 @@ python tools/ci_build.py linux release   # what CI builds
 | --- | --- | --- |
 | `HALO_ANDROID` | Android | The app: its display, input, files and lifecycle |
 | `HALO_GLES` | Android, web | The OpenGL ES renderer |
-| `HALO_ANDROID_GUEST` | Android (both ABIs) | The guest: its C library, its SDL bridge, its memory window |
-| `HALO_ARM64_GUEST` | Android, arm64-v8a | The guest's ABI (ILP32 AArch64, compiled through Mach-O) |
-| `HALO_ARM32_GUEST` | Android, armeabi-v7a | The guest's ABI (32-bit ARM, ELF) |
+| `HALO_ARM64_GUEST` | Android | The guest's ABI (ILP32 AArch64) |
 | `HALO_WEB` | Web | The browser: its frames, storage, sockets and WebGL 2's limits (with `HALO_GLES`, not `HALO_ANDROID`) |
 | `HALO_WINDOWS` | Windows (`halo_windows_prefix.h`) | The Windows build |
 | `HALO_RELEASE` | `--release` | No assertions checked |
@@ -96,7 +90,6 @@ python -m pytest -q tools/test_mods.py                      # mods played over a
 python -m pytest -q tools/test_bots.py                      # the bots in local games (needs assets/maps)
 python -m pytest -q tools/test_cache_file_formats.py tools/test_bmp_files.py tools/test_profile.py
 python tools/test_touch_layout.py                           # the Android touch layout (JDK 17+)
-python -m pytest -q tools/test_host_alignment.py           # the 32-bit Android app's fixups of unaligned accesses
 python tools/test_light_storage.py
 python tools/test_death_timing.py
 python -m pytest -q tools/test_web_build.py                 # the web build's graph, sockets, menus

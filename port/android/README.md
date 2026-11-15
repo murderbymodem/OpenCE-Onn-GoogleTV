@@ -4,14 +4,6 @@
 `ninja android_apk` makes an app from it:
 `port/android/app/build/outputs/apk/debug/app-debug.apk`.
 
-`python configure.py --android-abis armeabi-v7a` builds it for 32-bit ARM
-Android instead, for devices whose Android runs only 32-bit apps (many
-Android TV devices, such as the Onn 4K Pro, even with a 64-bit processor);
-`--android-abis arm64-v8a,armeabi-v7a` makes one app with both. The
-32-bit app needs an ARMv7-A processor with NEON, and runs ARMv8 code on
-an ARMv8 one. Refer to "The 32-bit app"
-below.
-
 The game shows its graphics with OpenGL ES 3. It plays sound through SDL3
 (AAudio). It accepts input from game controllers, for example a PlayStation
 5 DualSense on Bluetooth, and from the touchscreen (refer to "Controls").
@@ -350,17 +342,10 @@ These settings are only for Android:
 | `input.touch_aim_assist` | `true` (the default): the touch controls' swipe aiming gets the aim assist of a controller (the aim slows over a target and follows a moving one). `false`: none, as with a mouse; the bullets' own autoaim stays. |
 | `input.touch_controls` | The touch controls in a game. `"auto"` (the default): shown on a touchscreen while no controller is connected. `"on"`: also shown with a controller. `"off"`: never shown. A device without a touchscreen never shows them. The carnage report's CONTINUE and LEAVE buttons follow the same rule (otherwise it shows its A and B prompt), and so does a cinematic's SKIP button (otherwise any tap skips it). The menus take taps in any case. |
 | `display.screen_width` | The number of columns of the 480-line picture. `0` (the default): the shape of the display (1068 on a 20:9 phone). `640`: the 4:3 shape of the Xbox. |
-| `display.vsync`, `display.max_fps` | `false` and `30` in the 32-bit app (armeabi-v7a), `true` and `0` in the 64-bit one: the 32-bit app's TV boxes draw a network game at 30 to 55 frames a second, and a steady 30 (the game's tick rate), paced by `max_fps`, plays better than the display's rate with dips. Android composites every frame, so vsync off does not tear. |
-| `display.object_shadows` | `false` in the 32-bit app (armeabi-v7a), `true` in the 64-bit one: the objects' shadows on the ground. Each object's shadow takes several changes of render target, which cost a Mali-G310 TV box about 7 ms of a frame in a network game. Refer to the settings table of `port/linux/README.md`. |
 | `display.stats_log` | `false` (the default): `true` writes a line a second to the log with the frame rate, the mode, the map, the renderer and the size of the 3D view, for a bug report or to compare two builds. |
 | `display.resolution_scaling` | Also Linux's, with another default on Android. `"original"` (the default): the game draws the 480 lines of the Xbox, which the display scales up. `"native"`: the game draws at the display's resolution (1080 lines on a 1080p phone). `"75%"`, `"50%"` or `"25%"`: that part of the display's resolution each way, scaled up: less for the GPU to draw, for more frames a second and less heat. Video Setup's Resolution Scaling sets it, from the next frame. |
 | `debug.sample_seconds` | Refer to "Find problems". |
 | `debug.memory_watch` | `true` (the default): the app notices the game's writes to cached textures by page protection. `false`: it compares page contents once a frame instead, which is slower. Geometry uses the streaming path in either mode. Refer to "Limits". |
-| `display.shader_cache` | `true` in the 32-bit app (armeabi-v7a), `false` in the 64-bit one: keep the GPU programs the game links in `shader_cache/` beside `config.toml`'s saves and load each from there the next time, instead of linking it again (50-90 ms each on a Mali-G310 TV box, a stalled frame the first time an effect is drawn in each run). The file is the driver's own: a system update starts another. `debug.gpu_stats` logs how many programs came from it. Refer to the settings table of `port/linux/README.md`. |
-| `audio.hrtf` | `false` in the 32-bit app (armeabi-v7a), `true` in the 64-bit one: the Xbox's directional filters for 3D sounds. On a TV box's Cortex-A55 they are about 40% of the mixer's work; with many sounds playing the mixer then takes most of a core, and the game waits for it. 3D sounds are still panned and attenuated. With it, `audio.resampler` should be `xbox` (the default) or `linear`: `sinc`, the default of older versions that an old `config.toml` keeps, is a 48-tap low pass, a quarter of the mixer's work there. Refer to the settings table of `port/linux/README.md`. |
-| `input.quick_turn_rate` | `400.0` in the 32-bit app (armeabi-v7a), `0.0` (off) in the 64-bit one: degrees a second the view turns while a gamepad's back paddle is held, as the look stick held over at a high sensitivity. `input.quick_turn_left` and `input.quick_turn_right` name the buttons; empty, they are the paddles SDL knows and Android's BUTTON_Z (left) and BUTTON_C (right), which the 8BitDo Ultimate 2 sends for its left and right paddles over Bluetooth. If a paddle does nothing, press it in a game and look for `gamepad: buttonN pressed` in the log (`adb logcat -s halo`), then name `buttonN` in the setting; if the two are the wrong way round, swap them. Refer to the settings table of `port/linux/README.md`. |
-| `debug.gl_profile` | `false` (the default). `true`, on the 32-bit app (armeabi-v7a): every 120 frames the log has the OpenGL ES functions that took the most time in the driver, with their calls and time a frame, and the app's own GL helpers and the buffer swap. Slower while on; for finding where a frame's CPU time goes, which a profiler cannot name in drivers without symbols. |
-| `debug.gl_refresh_state` | `false` (the default). `true`: every OpenGL value is set again for each draw, whatever the renderer remembers having set. Slower; for finding whether a GPU driver and the renderer disagree on what is set, which shows as black or missing surfaces. |
 
 ## Internet play
 
@@ -631,13 +616,6 @@ identifiers retain both fixes. The policy is selected before the game
 creates resources, stays fixed for the process, and is logged at startup.
 No console command, configuration change or device permission is needed.
 
-To try another family's policy on a device (to find which one its
-rendering needs), set `debug.halo.render_chip` before starting the game:
-`adb shell setprop debug.halo.render_chip 0` (unknown: both fixes), `1`
-(Snapdragon), `2` (MediaTek) or `3` (other); `adb shell setprop
-debug.halo.render_chip ""` goes back to the device's own. The log says
-`render chip: family <n> (debug.halo.render_chip)` while it applies.
-
 With geometry fixes enabled, Android bypasses the persistent geometry
 mirror and its cached index extents and uses the upload paths below.
 Affected players reported that bypassing the cache resolved stretched or
@@ -676,12 +654,7 @@ and reload, address reuse and allocation failure.
   `llvm-symbolizer --obj=build/android/halo_guest.elf <address>`.
 - Set `sample_seconds = <seconds>` in `[debug]` of `config.toml`. The log
   then shows the program counter and the frame chain of each guest thread
-  at this interval. This finds hangs on devices without root access. A
-  fraction of a second (`0.02`, a hundredth at least) makes it a profile
-  with each sample's callers, which simpleperf cannot give of the 32-bit
-  guest: record `adb logcat -s halo` to a file while playing, and count the
-  functions of the `sample tid` lines' addresses (the first is where the
-  thread was, the rest its callers, innermost first).
+  at this interval. This finds hangs on devices without root access.
 - Set `gl_debug = true` in `[debug]` of `config.toml`. The log then shows
   the OpenGL ES errors.
 - The log says which write tracking the app uses: "page protection"
@@ -731,85 +704,3 @@ an unload summary and the first allocation failure per cache lifetime in the
 normal platform log. No test log files, per-frame reports, texture fingerprints
 or uniform readbacks run in the permanent build. The cache can still exhaust
 its limit or system memory; normal fallback handling remains available.
-
-## The 32-bit app
-
-The 64-bit app runs the game as ILP32 AArch64 code. A 32-bit Android cannot
-run AArch64 code at all, so the 32-bit app (armeabi-v7a) runs the game as
-32-bit ARM code (ARMv7-A with NEON, in ARM state, Android's softfp calling
-convention), in an ordinary 32-bit app:
-
-- the guest image is `halo_guest_armv7.elf`, compiled for ELF directly
-  (`--target=armv7a-unknown-linux-musleabi`), without the Mach-O
-  conversion; it is linked at the same address, 0x88000000, after the same
-  Xbox window at 0x80000000;
-- its C library is the same musl, built against the same system call
-  interface (`guest/libc/arch/arm64_32`: AArch64's numbers and structures),
-  which the host translates to 32-bit ARM's calls through bionic
-  (`host/host_syscall.c`, `host/host_guest_syscalls.h`);
-- its import stubs (`tools/android_imports.py --arch arm`) load the host's
-  function from the same 8-byte table entries, and enter it with `ldr pc`,
-  which goes to Thumb or ARM code as the address says;
-- `HALO_ARM32_GUEST` and `HALO_ANDROID_GUEST` are defined for it, not
-  `HALO_ARM64_GUEST`.
-
-The 32-bit app has a second image of the game, `halo_guest_armv8.elf`
-(`build/android/armv8`): the same sources compiled for ARMv8's 32-bit
-state (`-march=armv8-a -mfpu=neon-fp-armv8 -mtune=cortex-a55`). Most 32-bit
-Android TV boxes have a 64-bit processor under a 32-bit Android (the Onn 4K
-boxes' Cortex-A55, for example), and there the compiler's code divides with
-the processor's instruction and rounds with VRINT, where ARMv7 code calls a
-routine for each (some 900 places in the game). The host starts the ARMv8
-image where the processor says it is ARMv8 (the kernel's platform name
-`v8l`, or ARMv8's CRC32 instructions in its capabilities; never under an
-ARM translator), and the ARMv7 image everywhere else, so the app runs on
-every armeabi-v7a device with NEON. Both compute the same results: every
-instruction the ARMv8 image gains is exact, and neither fuses a multiply
-and an add. The log (tag `halo`) names the processor and the image:
-`guest image: halo_guest_armv8.elf`; addresses in a crash report are
-symbolized against the build's file of that name.
-`adb shell setprop debug.halo.guest_image armv7` (or `armv8`) starts that
-image whatever the processor, for comparing the two; `""` goes back to the
-processor's.
-
-Both images take `memcpy` and `memmove` from the guest runtime
-(`guest/runtime/guest_string.c`: sixteen bytes at a time through NEON
-registers, at any alignment) in place of musl's generic C ones, and the
-ARMv7 image rounds real numbers to integers in line
-(`halo_linux_prefix.h`, "rounding on ARMv7") in place of a call to `rint`.
-
-In a 32-bit process the game, ART, the graphics driver and the app share
-the 4 GB (or 3 GB) of address space, so the fixed ranges at 0x80000000 are
-more often taken by the time the game loads. The app then says so and
-writes `memory_map.txt` (refer to "Game data").
-
-The fork that maintains the 32-bit app builds and publishes it with
-`.github/workflows/onn-googletv.yml`: each push to its `armeabi-v7a` branch is
-built with the clang of the profiles in `pgo/` (so that they optimise it),
-signed in a job of its own, which runs none of the repository's code, with
-the `OPENCE_ONN_GOOGLETV_KEYSTORE_BASE64` and
-`OPENCE_ONN_GOOGLETV_KEYSTORE_PASSWORD` secrets' key, and published as a release `build-<n>` with `opence-onn-googletv-release.zip`
-and `opence-onn-googletv-debug.zip` (`HALO_RELEASE_ASSET_PREFIX`), which the app's self-updater of those builds
-installs (each its own kind); every six hours the main
-project's newest release is merged in, to keep the network version the same
-as the main project's, and built. CI_ANDROID_ABIS and CI_ANDROID_GUEST_CC
-give `tools/ci_build.py` the ABIs and the guest's compiler.
-
-`python configure.py --android-guest-lto` optimises the 32-bit guest at the
-link (`CI_ANDROID_GUEST_LTO` for `tools/ci_build.py`'s release builds, which
-the fork's workflow sets): the game, the platform layer, the maths and the
-vendored libraries are compiled to LLVM bitcode and optimised as one module,
-as the Linux and Windows builds are, so that the game's small functions are
-inlined across its files. The guest's C library and runtime stay ordinary
-objects. The link is done by the guest compiler's own `ld.lld` (`clang
--print-prog-name=ld.lld`), which reads its bitcode, and fails if the image
-has a thread-local segment (the guest's thread-local storage is emulated).
-The 64-bit guest, whose objects are converted from Mach-O assembly, is built
-without.
-
-32-bit ARM, unlike AArch64, stops a program at some unaligned accesses
-(floating-point and double-word loads and stores of addresses that are not
-a multiple of 4). Such an access is a SIGBUS in logcat (tag `halo`), with
-the guest's address: `llvm-addr2line -e build/android/armv7/halo_guest_armv7.elf <address>`
-(or `build/android/armv8/halo_guest_armv8.elf`, as the log's `guest image:` line says)
-names the line.

@@ -2,6 +2,8 @@
 
 What to do when the workflow sends an email or opens an issue (conflicts,
 failed builds, the token, rollbacks): [onn_googletv_runbook.md](onn_googletv_runbook.md).
+What the fork adds (the 32-bit app, its settings): [onn_googletv_android.md](onn_googletv_android.md).
+The standing rules for Claude sessions: `CLAUDE.md`.
 
 State of the 32-bit Android (armeabi-v7a) port in the fork
 `murderbymodem/OpenCE-Onn-GoogleTV` (renamed from OpenCE-AndroidTV on 2026-11-15), branch `armeabi-v7a` (the default branch;
@@ -318,6 +320,20 @@ asks is in [onn_googletv_runbook.md](onn_googletv_runbook.md).
   whose need for the 64-bit app is unproven). What the workflow cannot fix:
   a conflicting merge, a release that does not build here, a release that
   builds but misbehaves on the boxes (roll back), and the token's renewal.
+
+## 2026-11-15: the main project's documents left as they are
+
+The main project edits its documents constantly (its `port/linux/README.md`
+383 times in 60 days, its settings table above all), and the fork's rows in
+them were each within a few lines of its edits 11 to 21 times: a merge
+conflict waiting to happen. `AGENTS.md`, `port/android/README.md` and
+`port/linux/README.md` are now exactly the main project's; what the fork
+had added (the 32-bit app's section, its settings and defaults, its build
+options) is in `docs/onn_googletv_android.md`, and the rules for Claude
+sessions in `CLAUDE.md` (kept short, as every session reads it whole; these
+notes are read when needed). `README.md` keeps the fork's lines (the user
+wants it to follow the main project's, other platforms' downloads
+included).
 
 ## Next steps
 
