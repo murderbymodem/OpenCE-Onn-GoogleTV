@@ -305,15 +305,17 @@ Multiplayer rule: change nothing in the simulation or network messages; keep
 
 - CI: `.github/workflows/onn-googletv.yml` (`androidtv.yml` until 2026-11-15). Push to `armeabi-v7a` -> clang 22
   (apt.llvm.org) + PGO (`pgo/halo_linux.profdata`), release `build-<base*100+revision>`, titled
-  `<base>.<revision>` (`tools/onn_googletv_version.sh`: base the main
-  project's newest release in the build, so 359.1 contains OpenCE build 359)
+  `<base>`, then `<base>.<n>` (`tools/onn_googletv_version.sh`: base the main
+  project's newest release in the build; 365 is OpenCE build 365 merged,
+  365.1 and on the fork's own releases after it; up to 359 the older
+  359.1, 359.2 naming)
   with `opence-onn-googletv-release.zip` and `-debug.zip`
   (`HALO_RELEASE_ASSET_PREFIX`; copies as `halo-android-*.zip` for the
   updater of apps from build 127 and before, to drop once every device has
   updated),
   latest, last five kept. Every six hours (:17 past 00, 06, 12, 18 UTC) the
   sync merges upstream's newest release (its highest `build-<n>` tag, not
-  the tip of main), so each sync's release is exactly `<n>.1` (issue on
+  the tip of main), so each sync's release is exactly `<n>` (issue on
   conflict). Upstream's Build and Server
   image workflows are disabled in the fork. Secrets: `ANDROID_KEYSTORE_BASE64`,
   `ANDROID_KEYSTORE_PASSWORD`, optional `SYNC_TOKEN` (fine-grained PAT,

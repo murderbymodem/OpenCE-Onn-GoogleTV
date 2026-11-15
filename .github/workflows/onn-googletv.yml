@@ -13,9 +13,10 @@ name: OpenCE Onn GoogleTV (armeabi-v7a)
 # download), the newest marked latest: the app's self-updater
 # (Updater.java) of the builds made here takes the one of its own kind from
 # this repository. The players' version follows the main project's releases
-# (tools/onn_googletv_version.sh): <base>.<revision>, base the number of the
+# (tools/onn_googletv_version.sh): base, then <base>.<n>, base the number of the
 # main project's newest release (its build-<base>) whose commit the build
-# contains, revision this fork's releases on that base (359.1, 359.2, 365.1):
+# contains: the main project's release itself is just the base (365), and
+# this fork's own releases after it on that base are 365.1, 365.2:
 # the app's version name and the release's title, which the README's
 # download badge shows (HALO_VERSION_NAME). n is
 # base * 100 + revision: the app's version code and the number the updater
@@ -29,7 +30,7 @@ name: OpenCE Onn GoogleTV (armeabi-v7a)
 # have it yet, so that this app stays able to play with the main project's
 # (machines of different network versions do not play together:
 # port/linux/include/halo_port_limits.h), and then built: its version is then
-# exactly <n>.1 (tools/onn_googletv_version.sh). The main project's commits
+# exactly <n>, the main project's (tools/onn_googletv_version.sh). Its commits
 # after its last release wait for its next one. A merge
 # that conflicts is not pushed: the run fails with an error saying so (and
 # opens an issue, where the repository has issues). GitHub's own token cannot

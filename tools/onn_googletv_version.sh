@@ -5,10 +5,13 @@
 #
 #   tools/onn_googletv_version.sh UPSTREAM_URL EXISTING_TAGS_FILE
 #
-# prints "<code> <name>": name is <base>.<revision> (359.1, 359.2, then 365.1
-# once the build contains the main project's build 365), the players' number
-# (the app's version name, the release's title); code is base * 100 +
-# revision, the app's version code and the release's tag (build-<code>),
+# prints "<code> <name>": name is the players' number (the app's version name,
+# the release's title): the base alone for the first release on it, which
+# is the main project's release itself (365), then <base>.<n> for the fork's
+# own releases after it on the same base (365.1, 365.2), until the build
+# contains the main project's next release (366). code is base * 100 +
+# revision (the first release on a base is revision 1: 36501, then 36502),
+# the app's version code and the release's tag (build-<code>),
 # which the updater compares and Android requires to rise. EXISTING_TAGS_FILE
 # lists this repository's release tags, one a line. The revision is one more
 # than the last release on the same base; a code is always above every
@@ -56,4 +59,13 @@ if (( revision == 0 )); then
 	echo "a hundredth release on base $(( code / 100 - 1 ))" >&2
 	exit 1
 fi
-echo "$code $(( code / 100 )).$revision"
+base=$(( code / 100 ))
+# (the bases before this naming, up to 359, kept <base>.<revision>: 359.1 is
+# already a release, so 359's next is 359.2)
+if (( base <= 359 )); then
+	echo "$code $base.$revision"
+elif (( revision == 1 )); then
+	echo "$code $base"
+else
+	echo "$code $base.$(( revision - 1 ))"
+fi
