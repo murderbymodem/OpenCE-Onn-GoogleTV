@@ -363,14 +363,18 @@ port itself, in files the main project seldom edits.
 ## 2026-11-15: the fork's own front page
 
 The repository's front page is `.github/README.md`, which GitHub shows in
-place of the root `README.md`: the fork's title, badges, hardware section and
-download table (the other platforms' rows link the main project's
-downloads), then the main project's opening, game data, download notes,
-credits, licence and disclaimer. The main project's sections on multiplayer,
-maps, mods, graphics, building and development are left out (much of it does
-not run on the boxes; the root `README.md` still has them). The root
-`README.md` is the main project's exactly, so no merge of it can conflict.
-Its relative links start from `.github/` (`../docs/...`).
+place of the root `README.md`. It is the fork's own: its title, its download
+badge only, the main project's first sentence (linking the main project) and
+a paragraph on the fork, the first paragraph on the game data, the hardware
+section, a download table of the fork's release only (with notes on the
+debug build, the app's updates and the last five releases), and the credits
+(saying the fork is a fork of OpenCE, then the main project's credits),
+licence and disclaimer. The main project's badges, screenshot, other
+platforms' downloads and sections on multiplayer, maps, mods, graphics,
+building and development are left out (the root `README.md` still has them).
+The root `README.md` is the main project's exactly, so no merge of it can
+conflict. The front page's relative links start from `.github/`
+(`../docs/...`).
 
 ## Next steps
 
