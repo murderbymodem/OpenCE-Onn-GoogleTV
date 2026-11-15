@@ -331,9 +331,8 @@ conflict waiting to happen. `AGENTS.md`, `port/android/README.md` and
 had added (the 32-bit app's section, its settings and defaults, its build
 options) is in `docs/onn_googletv_android.md`, and the rules for Claude
 sessions in `CLAUDE.md` (kept short, as every session reads it whole; these
-notes are read when needed). `README.md` keeps the fork's lines (the user
-wants it to follow the main project's, other platforms' downloads
-included).
+notes are read when needed). `README.md` kept the fork's lines at first; it is
+now the main project's too (below).
 
 ## 2026-11-15: the fork's code in files of its own
 
@@ -360,6 +359,18 @@ Left where they are: the renderer's (`d3d8_gl.c`: the shader cache's
 gating, the opaque window) and `tools/android_build.py`'s (the two guest
 images, LTO), both woven through the main project's code; and the 32-bit
 port itself, in files the main project seldom edits.
+
+## 2026-11-15: the fork's own front page
+
+The repository's front page is `.github/README.md`, which GitHub shows in
+place of the root `README.md`: the fork's title, badges, hardware section and
+download table (the other platforms' rows link the main project's
+downloads), then the main project's opening, game data, download notes,
+credits, licence and disclaimer. The main project's sections on multiplayer,
+maps, mods, graphics, building and development are left out (much of it does
+not run on the boxes; the root `README.md` still has them). The root
+`README.md` is the main project's exactly, so no merge of it can conflict.
+Its relative links start from `.github/` (`../docs/...`).
 
 ## Next steps
 

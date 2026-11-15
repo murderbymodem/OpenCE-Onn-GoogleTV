@@ -20,11 +20,11 @@ Read as needed:
   merges each of its releases every six hours, and a conflict needs a
   person. Put the fork's changes in files of its own (`*_onn_googletv*`,
   `docs/onn_googletv_*`, new source files) with the smallest hooks in shared
-  files. Never edit the main project's documents (`AGENTS.md`,
+  files. Never edit the main project's documents (`README.md`, `AGENTS.md`,
   `port/*/README.md` and the like): the fork's documentation goes in
-  `docs/onn_googletv_*.md`. `README.md` is the one exception: only its
-  title, the onn download badge, the hardware section and the onn download
-  row are the fork's.
+  `docs/onn_googletv_*.md`, and its front page is `.github/README.md`
+  (GitHub shows that one in place of the root `README.md`; its relative
+  links start from `.github/`, so `../docs/...`).
 - **Online play with the main project must keep working.** Change nothing
   the machines of a network game send or must agree on, and keep
   `HALO_PORT_NETWORK_VERSION` as the main project's.

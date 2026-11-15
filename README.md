@@ -1,4 +1,4 @@
-# OpenCE - Halo: Combat Evolved for Walmart Onn GoogleTV boxes
+# OpenCE - Halo: Combat Evolved for Linux, Windows, Android and the web
 
 <p align="center">
   <img src="port/assets/icon/opence-icon.png" alt="OpenCE" width="128">
@@ -6,7 +6,6 @@
 
 
 <p align="center">
-  <a href="https://github.com/murderbymodem/OpenCE-Onn-GoogleTV/releases/latest"><img src="https://img.shields.io/github/v/release/murderbymodem/OpenCE-Onn-GoogleTV?label=Download%20Onn%20GoogleTV&display_name=release&style=for-the-badge" alt="Download for Onn GoogleTV"></a>
   <a href="https://github.com/OpenCommunityEdition/OpenCE/releases/latest"><img src="https://img.shields.io/github/v/release/OpenCommunityEdition/OpenCE?label=Download&style=for-the-badge" alt="Download"></a>
   <a href="https://halocombatevolved.com/"><img src="https://img.shields.io/badge/Play-in_browser-blue?style=for-the-badge" alt="Play in browser"></a>
   <a href="https://discord.gg/9gqcHyr5km"><img src="https://img.shields.io/badge/Discord-join-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
@@ -16,7 +15,7 @@
 **OpenCE** (Open Community Edition) is an open source port of the Halo: Combat Evolved decompilation (Halo CE) based on an early Xbox development build (2342) and forked from
 [bnunu/halo-1](https://github.com/bnunu/halo-1). The project aims to enhance the existing game and adds many features, such as 128-player multiplayer, online campaign co-op, mod packs, field-of-view settings, a server browser, peer-to-peer hosting, automatic map downloads, voice chat, support for Custom Edition maps and much more! 
 
-The game runs natively on Windows, Linux, Android **(now including 32-bit armeabi-v7a, this fork)** and in the web browser with nothing to install. A macOS port is in progress. Worth noting that it is not an emulator, **the game's own code is compiled for each platform** with a new layer in place of the Xbox's hardware. Runs on OpenGL (Android is on OpenGL ES and WebGL 2 in the browser). Sound, input, gamepads are all handled through SDL3. The game currently draws a frame every refresh of your display with Smooth Motion enabled, while the simulation runs at 30 ticks just like the original Xbox. 
+The game runs natively on **Windows, Linux, Android** and in the **web browser** with nothing to install. A macOS port is in progress. Worth noting that it is not an emulator, **the game's own code is compiled for each platform** with a new layer in place of the Xbox's hardware. Runs on OpenGL (Android is on OpenGL ES and WebGL 2 in the browser). Sound, input, gamepads are all handled through SDL3. The game currently draws a frame every refresh of your display with Smooth Motion enabled, while the simulation runs at 30 ticks just like the original Xbox. 
 
 <img width="1284" height="1007" alt="The game running on Windows" src="https://github.com/user-attachments/assets/0a4412e1-f6d3-48ed-8e17-0a374c2122f1" />
 <p align="center"><em>OpenCE running on Windows (release build)</em></p>
@@ -43,37 +42,18 @@ data folder. Refer to [port/android/README.md](port/android/README.md). On
 the web, the page copies `maps/` out of the disc image into the browser's
 storage for the site - nothing is uploaded ([port/web/README.md](port/web/README.md)).
 
-## Hardware
-
-The 32-bit Onn GoogleTV app has been tested on:
-
-| Device | CPU | GPU | RAM |
-| --- | --- | --- | --- |
-| onn 4K Pro Streaming Device Gen 2 (2026), Android 14 (32-bit) | Amlogic S905X5M, 4x Cortex-A55 | Arm Mali-G310 (OpenGL ES 3.2) | 3 GB |
-| onn 4K Plus Streaming Device (2026), Android 14 (32-bit) | Amlogic S905X5M, 4x Cortex-A55 | Arm Mali-G310 (OpenGL ES 3.2) | 2 GB |
-
-Both hold about 30 fps in small multiplayer matches, with occasional dips below
-that. Some of the main project's features, such as high player counts and
-modded co-op campaigns, may not be playable on this hardware.
-
-Older onn boxes and other 32-bit AndroidTV and GoogleTV boxes may work, but are
-untested.
-
 ## Download
 
 GitHub Actions builds the game for each commit. 
 
-Builds for latest release (the Onn GoogleTV row is this fork's own release, built by
-[onn-googletv.yml](.github/workflows/onn-googletv.yml) for each commit to `armeabi-v7a`;
-the others are the main project's):
+Builds for latest release:
 
 | Platform | Release | Debug | Guide |
 | --- | --- | --- | --- |
-| **Onn GoogleTV 32-bit** (armeabi-v7a, this fork) | [opence-onn-googletv-release.zip](https://github.com/murderbymodem/OpenCE-Onn-GoogleTV/releases/latest/download/opence-onn-googletv-release.zip) | [opence-onn-googletv-debug.zip](https://github.com/murderbymodem/OpenCE-Onn-GoogleTV/releases/latest/download/opence-onn-googletv-debug.zip) | [The 32-bit app](docs/onn_googletv_android.md) |
 | Linux | [halo-linux-release.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-linux-release.zip) | [halo-linux-debug.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-linux-debug.zip) | [Linux](port/linux/README.md) |
 | Windows | [halo-windows-release.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-windows-release.zip) | [halo-windows-debug.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-windows-debug.zip) | [Windows](port/windows/README.md) |
 | Android | [halo-android-release.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-android-release.zip) | [halo-android-debug.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-android-debug.zip) | [Android](port/android/README.md) |
-| Web | [opencommunityedition.com](http://www.opencommunityedition.com/) (or [halo-web-release.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-web-release.zip) for your own server) | [halo-web-debug.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-web-debug.zip) | [Web](port/web/README.md) |
+| Web | [halocombatevolved.com](https://halocombatevolved.com/) (or [halo-web-release.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-web-release.zip) for your own server) | [halo-web-debug.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-web-debug.zip) | [Web](port/web/README.md) |
 
 
 Release build is recommended for regular play. 
