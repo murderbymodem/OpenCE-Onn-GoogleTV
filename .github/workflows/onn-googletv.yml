@@ -15,9 +15,7 @@ name: OpenCE Onn GoogleTV (armeabi-v7a)
 # project's that comes with a merge finds them), checks that the key is the
 # one the installed apps have, and publishes them as a release build-<n>
 # holding opence-onn-googletv-release.zip
-# and opence-onn-googletv-debug.zip (and the same as halo-android-release.zip
-# and halo-android-debug.zip, which the apps of builds 127 and before
-# download), the newest marked latest: the app's self-updater
+# and opence-onn-googletv-debug.zip, the newest marked latest: the app's self-updater
 # (Updater.java) of the builds made here takes the one of its own kind from
 # this repository. The players' version follows the main project's releases
 # (tools/onn_googletv_version.sh): base, then <base>.<n>, base the number of the
@@ -402,9 +400,9 @@ jobs:
 
       # the release the self-updater looks for: tag build-<n>, the latest,
       # with opence-onn-googletv-release.zip and -debug.zip (each app and its
-      # licences), and copies under their earlier names for the apps of builds
-      # 127 and before, whose updater asks for those: drop them once every
-      # device has updated
+      # licences). (The apps of builds 127 and before ask for the archives'
+      # earlier names, halo-android-release.zip: they no longer update, and
+      # are updated by hand once, adb install -r)
       - name: Publish
         if: ${{ github.ref == 'refs/heads/armeabi-v7a' }}
         env:
@@ -417,13 +415,10 @@ jobs:
           tag="build-$CODE"
           (cd dist/halo-android-release && zip -qr "$GITHUB_WORKSPACE/$PREFIX-release.zip" .)
           (cd dist/halo-android-debug && zip -qr "$GITHUB_WORKSPACE/$PREFIX-debug.zip" .)
-          cp "$PREFIX-release.zip" halo-android-release.zip
-          cp "$PREFIX-debug.zip" halo-android-debug.zip
-          printf '%s\n\nOpenCE Onn GoogleTV '"$NAME"': the 32-bit Android app (armeabi-v7a) for the Onn 4K GoogleTV boxes. Install opence-onn-googletv-release.zip'"'"'s APK (adb install -r), or let the app update itself; opence-onn-googletv-debug.zip'"'"'s app checks the game'"'"'s assertions, for reporting problems. (halo-android-release.zip and halo-android-debug.zip are the same, for the updater of apps from build 127 and before.)\n\nBased on OpenCE build '"${NAME%%.*}"'.\nCommit: %s\nBuild: %s\nNetwork version: %s\n' \
+          printf '%s\n\nOpenCE Onn GoogleTV '"$NAME"': the 32-bit Android app (armeabi-v7a) for the Onn 4K GoogleTV boxes. Install opence-onn-googletv-release.zip'"'"'s APK (adb install -r), or let the app update itself; opence-onn-googletv-debug.zip'"'"'s app checks the game'"'"'s assertions, for reporting problems.\n\nBased on OpenCE build '"${NAME%%.*}"'.\nCommit: %s\nBuild: %s\nNetwork version: %s\n' \
             "$SUBJECT" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$GITHUB_SHA" \
             "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" "$NETWORK_VERSION" > notes.md
-          gh release create "$tag" "$PREFIX-release.zip" "$PREFIX-debug.zip" \
-            halo-android-release.zip halo-android-debug.zip --target "$GITHUB_SHA" --latest \
+          gh release create "$tag" "$PREFIX-release.zip" "$PREFIX-debug.zip" --target "$GITHUB_SHA" --latest \
             --title "$NAME" --notes-file notes.md
 
       - name: Keep the last five

@@ -310,9 +310,9 @@ Multiplayer rule: change nothing in the simulation or network messages; keep
   365.1 and on the fork's own releases after it; up to 359 the older
   359.1, 359.2 naming)
   with `opence-onn-googletv-release.zip` and `-debug.zip`
-  (`HALO_RELEASE_ASSET_PREFIX`; copies as `halo-android-*.zip` for the
-  updater of apps from build 127 and before, to drop once every device has
-  updated),
+  (`HALO_RELEASE_ASSET_PREFIX`; until 365.1 also as `halo-android-*.zip`,
+  the names the updater of builds 127 and before asks for: those apps no
+  longer update by themselves, adb install -r once),
   latest, last five kept. Every six hours (:17 past 00, 06, 12, 18 UTC) the
   sync merges upstream's newest release (its highest `build-<n>` tag, not
   the tip of main), so each sync's release is exactly `<n>` (issue on
