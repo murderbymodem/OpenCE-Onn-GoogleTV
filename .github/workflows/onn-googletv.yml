@@ -46,7 +46,9 @@ name: OpenCE Onn GoogleTV (armeabi-v7a)
 # GitHub's own token.
 #
 # The sync also builds again a commit of armeabi-v7a that has no release
-# (twice at most: a passing failure), and writes docs/onn_googletv_keepalive.md
+# (twice for a passing failure; after three failures an issue, and once a
+# day), disables any other workflow that a merge of the main project's made
+# active here, and writes docs/onn_googletv_keepalive.md
 # after 45 days without a commit (GitHub turns schedules off after 60). By
 # hand, the rebuild input rolls back: an earlier release's commit, built as a
 # new release with the next number, which the boxes take as an update.
@@ -209,41 +211,102 @@ jobs:
             gh workflow run onn-googletv.yml --ref "$BRANCH"
           fi
 
-      # a commit of armeabi-v7a that has no release, whose build failed for a
-      # passing reason (a download, the runner): built again, at most twice.
-      # Commits of .md files only are not built, and a commit with a
-      # release (a rollback's base too) is left alone
+      # a workflow of the main project's that came with a merge (a new one, or
+      # one it renamed) is active here until it is disabled: only this
+      # workflow runs in the fork, so any other is disabled, and its runs
+      # stopped
+      - name: Disable the main project's workflows
+        env:
+          MERGED: ${{ steps.merge.outputs.merged }}
+        run: |
+          # (GitHub takes a moment to list a workflow that was just pushed)
+          if [ "$MERGED" = "true" ]; then
+            sleep 30
+          fi
+          gh api "repos/$GH_REPO/actions/workflows?per_page=100" \
+            --jq '.workflows[] | select(.state == "active" and (.path | startswith(".github/workflows/")) and .path != ".github/workflows/onn-googletv.yml") | "\(.id) \(.path)"' > others.txt || true
+          while read -r id path; do
+            if gh api -X PUT "repos/$GH_REPO/actions/workflows/$id/disable" < /dev/null; then
+              echo "::warning title=Disabled a workflow of the main project's::$path was active in this repository: disabled"
+            else
+              echo "::warning title=A workflow of the main project's is active::$path could not be disabled: disable it in the Actions settings"
+            fi
+            for run in $(gh api "repos/$GH_REPO/actions/workflows/$id/runs?per_page=50" --jq '.workflow_runs[] | select(.status != "completed") | .id' < /dev/null || true); do
+              gh api -X POST "repos/$GH_REPO/actions/runs/$run/cancel" > /dev/null < /dev/null || true
+            done
+          done < others.txt
+
+      # a commit of armeabi-v7a that has no release, whose build failed: built
+      # again, twice for a passing reason (a download, the runner). After
+      # three failures an issue says so (nobody is mailed for a build the
+      # sync started), and the commit is built again once a day, so that a
+      # long outage of a download still ends in a release; the issue is
+      # closed when it does. Commits of .md files only are not built, and a
+      # commit with a release (a rollback's base too) is left alone
       - name: Build again what has no release
         if: ${{ steps.merge.outputs.merged != 'true' }}
         run: |
+          title="The build of $BRANCH keeps failing"
+          issues() {
+            if [ "$(gh api "repos/$GH_REPO" --jq .has_issues)" = "true" ]; then
+              gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[].number'
+            fi
+          }
+          built() {
+            for issue in $(issues || true); do
+              gh issue close "$issue" --comment "$1" || true
+            done
+          }
           sha="$(git rev-parse HEAD)"
           gh api "repos/$GH_REPO/releases?per_page=100" --jq '.[].target_commitish' > released.txt
           if grep -qx "$sha" released.txt; then
             echo "$sha has a release"
+            built "The newest commit of $BRANCH, $sha, has a release."
             exit 0
           fi
           latest="$(gh api "repos/$GH_REPO/releases/latest" --jq .target_commitish 2>/dev/null || true)"
           if [ -n "$latest" ] && git merge-base --is-ancestor "$latest" HEAD 2>/dev/null &&
             ! git diff --name-only "$latest" HEAD | grep -qv '\.md$'; then
             echo "only .md files changed since the latest release: nothing to build"
+            built "The newest code of $BRANCH, $latest, has a release."
             exit 0
           fi
+          # the runs of this commit that built (the syncs' own, this one too,
+          # skip the build) and did not succeed, whatever stopped them (a
+          # failure, the time limit)
+          gh api "repos/$GH_REPO/actions/workflows/onn-googletv.yml/runs?head_sha=$sha&branch=$BRANCH&per_page=100" \
+            --jq '.workflow_runs[] | "\(.id) \(.status) \(.conclusion) \(.updated_at) \(.html_url)"' > runs.txt
           failed=0
-          for run in $(gh api "repos/$GH_REPO/actions/workflows/onn-googletv.yml/runs?head_sha=$sha&per_page=50" --jq '.workflow_runs[].id'); do
-            # (not this run, which is of the same commit)
+          last=0
+          last_url=""
+          while read -r run status conclusion updated url; do
             [ "$run" = "$GITHUB_RUN_ID" ] && continue
-            status="$(gh api "repos/$GH_REPO/actions/runs/$run" --jq .status)"
             if [ "$status" != "completed" ]; then
               echo "a run of $sha is $status"
               exit 0
             fi
-            if gh api "repos/$GH_REPO/actions/runs/$run/jobs" --jq '.jobs[] | select(.name == "build" or .name == "sign") | .conclusion' | grep -qx failure; then
-              failed=$(( failed + 1 ))
+            if [ "$(gh api "repos/$GH_REPO/actions/runs/$run/jobs" --jq '[.jobs[] | select(.name == "build" and .conclusion != "skipped")] | length' < /dev/null)" = "0" ]; then
+              continue
             fi
-          done
+            [ "$conclusion" = "success" ] && continue
+            failed=$(( failed + 1 ))
+            ended="$(date -d "$updated" +%s)"
+            if [ "$ended" -gt "$last" ]; then
+              last=$ended
+              last_url=$url
+            fi
+          done < runs.txt
           if [ "$failed" -ge 3 ]; then
-            echo "$sha failed to build $failed times: left to a person (docs/onn_googletv_runbook.md)"
-            exit 0
+            echo "::warning title=$title::$sha failed to build $failed times (docs/onn_googletv_runbook.md)"
+            if [ "$(gh api "repos/$GH_REPO" --jq .has_issues)" = "true" ] && [ -z "$(issues)" ]; then
+              printf 'The newest commit of %s, %s, has no release: its build failed %s times, so the failure is probably not a passing one (a download, the runner). The boxes stay on the last release.\n\nThe sync goes on building it once a day, and closes this issue when a release appears. If the failure is in the code (the main project'"'"'s release does not build in this fork as it is), it needs a person: see "A build failed" in docs/onn_googletv_runbook.md.\n\nThe last failed run: %s\n' \
+                "$BRANCH" "$sha" "$failed" "$last_url" > issue.md
+              gh issue create --title "$title" --body-file issue.md || true
+            fi
+            if [ $(( $(date +%s) - last )) -lt 86400 ]; then
+              echo "built again once a day: the last try ended $(( ($(date +%s) - last) / 3600 )) hours ago"
+              exit 0
+            fi
           fi
           echo "$sha has no release ($failed failed builds): building it again"
           gh workflow run onn-googletv.yml --ref "$BRANCH"
