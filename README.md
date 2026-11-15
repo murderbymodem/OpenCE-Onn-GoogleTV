@@ -1,5 +1,4 @@
-# OpenCE Onn GoogleTV 
-Halo: Combat Evolved for 32-bit Walmart Onn GoogleTV boxes
+# OpenCE Onn GoogleTV - Halo: Combat Evolved for Walmart Onn GoogleTV boxes
 
 <p align="center">
   <img src="port/assets/icon/opence-icon.png" alt="OpenCE" width="128">
