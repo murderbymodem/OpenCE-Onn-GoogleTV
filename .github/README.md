@@ -59,6 +59,11 @@ page keeps the last five releases.
 
 ## Credits
 
+OpenCE Onn GoogleTV is a fork of
+[OpenCE](https://github.com/OpenCommunityEdition/OpenCE). The game and nearly
+all of its code are the main project's work; this fork adds the 32-bit app for
+the onn boxes.
+
 The decompilation is of the Xbox build 2342 (`cachebeta.exe`, SHA-256
 `4cc87b45f721270392a96f1674ed2b5cd4a7bb4355faeab4531d1cf1884d9520`).
 OpenCE starts from the decompilation of
