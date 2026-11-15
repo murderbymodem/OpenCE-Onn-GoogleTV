@@ -1,4 +1,4 @@
-name: Android TV (armeabi-v7a)
+name: OpenCE Onn GoogleTV (armeabi-v7a)
 
 # The 32-bit Android app (armeabi-v7a, port/android/README.md, "The 32-bit
 # app") of this fork, for Android TV boxes whose Android runs only 32-bit apps.
@@ -7,12 +7,21 @@ name: Android TV (armeabi-v7a)
 # compiled with clang 22 so that the profiles in pgo/ optimise it, and the
 # debug app (assertions checked, for finding problems), both signed with the
 # ANDROID_KEYSTORE_BASE64 and ANDROID_KEYSTORE_PASSWORD secrets' key, are
-# published as a release build-<n> holding halo-android-release.zip and
-# halo-android-debug.zip, the newest marked latest: the app's self-updater
+# published as a release build-<n> holding opence-onn-googletv-release.zip
+# and opence-onn-googletv-debug.zip (and the same as halo-android-release.zip
+# and halo-android-debug.zip, which the apps of builds 127 and before
+# download), the newest marked latest: the app's self-updater
 # (Updater.java) of the builds made here takes the one of its own kind from
-# this repository. n is the run number
-# plus 100, above the builds made by hand before this workflow. The last five
-# are kept.
+# this repository. The players' version follows the main project's releases
+# (tools/onn_googletv_version.sh): <base>.<revision>, base the number of the
+# main project's newest release (its build-<base>) whose commit the build
+# contains, revision this fork's releases on that base (359.1, 359.2, 365.1):
+# the app's version name and the release's title, which the README's
+# download badge shows (HALO_VERSION_NAME). n is
+# base * 100 + revision: the app's version code and the number the updater
+# compares, above the builds 101-127 of the workflow's old name
+# (androidtv.yml), whose installs then update to these. The last five
+# releases are kept.
 #
 # sync: every day (and by hand, with the sync input), the main project's new commits on its main
 # branch are merged into armeabi-v7a, so that this app stays able to play with
@@ -45,7 +54,7 @@ on:
     - cron: "41 7 * * *"
 
 concurrency:
-  group: androidtv-${{ github.event_name == 'schedule' && 'sync' || github.ref }}
+  group: onn-googletv-${{ github.event_name == 'schedule' && 'sync' || github.ref }}
   cancel-in-progress: false
 
 permissions:
@@ -127,7 +136,7 @@ jobs:
           HAS_SYNC_TOKEN: ${{ secrets.SYNC_TOKEN != '' }}
         run: |
           if [ "$HAS_SYNC_TOKEN" != "true" ]; then
-            gh workflow run androidtv.yml --ref "$BRANCH"
+            gh workflow run onn-googletv.yml --ref "$BRANCH"
           fi
 
   build:
@@ -162,11 +171,25 @@ jobs:
 
       - uses: actions/checkout@v4
 
+      # the version (tools/onn_googletv_version.sh): this commit's recent
+      # history and the main project's, to find its newest release in it
+      - name: Version
+        run: |
+          git fetch -q --no-tags --depth=500 origin "$GITHUB_SHA"
+          git fetch -q --no-tags --depth=500 "$UPSTREAM" "$UPSTREAM_BRANCH"
+          gh api "repos/$GH_REPO/releases?per_page=100" --jq '.[].tag_name' > "$RUNNER_TEMP/tags.txt"
+          # (a failure of the script stops the build: no release with no number)
+          version="$(tools/onn_googletv_version.sh "$UPSTREAM" "$RUNNER_TEMP/tags.txt")"
+          read -r code name <<< "$version"
+          echo "version $name (build-$code)"
+          echo "HALO_BUILD_NUMBER=$code" >> "$GITHUB_ENV"
+          echo "HALO_VERSION_NAME=$name" >> "$GITHUB_ENV"
+
       - uses: actions/cache@v4
         with:
           path: .ccache
-          key: ccache-androidtv-${{ github.sha }}
-          restore-keys: ccache-androidtv-
+          key: ccache-onn-googletv-${{ github.sha }}
+          restore-keys: ccache-onn-googletv-
 
       - uses: actions/cache@v4
         with:
@@ -190,7 +213,8 @@ jobs:
           fi
           printf '%s' "$KEYSTORE" | base64 -d > "$RUNNER_TEMP/halo.keystore"
           echo "HALO_ANDROID_KEYSTORE=$RUNNER_TEMP/halo.keystore" >> "$GITHUB_ENV"
-          echo "HALO_BUILD_NUMBER=$((GITHUB_RUN_NUMBER + 100))" >> "$GITHUB_ENV"
+          # (the release's archives' name, which the updater downloads)
+          echo "HALO_RELEASE_ASSET_PREFIX=opence-onn-googletv" >> "$GITHUB_ENV"
 
       - name: Release build
         env:
@@ -242,23 +266,28 @@ jobs:
           retention-days: 7
 
       # the release the self-updater looks for: tag build-<n>, the latest,
-      # with halo-android-release.zip and halo-android-debug.zip (each app and
-      # its licences)
+      # with opence-onn-googletv-release.zip and -debug.zip (each app and its
+      # licences), and copies under their earlier names for the apps of builds
+      # 127 and before, whose updater asks for those: drop them once every
+      # device has updated
       - name: Publish
         if: ${{ github.ref == 'refs/heads/armeabi-v7a' }}
         env:
           MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           tag="build-$HALO_BUILD_NUMBER"
-          (cd dist/halo-android-release && zip -qr "$GITHUB_WORKSPACE/halo-android-release.zip" .)
-          (cd dist/halo-android-debug && zip -qr "$GITHUB_WORKSPACE/halo-android-debug.zip" .)
+          (cd dist/halo-android-release && zip -qr "$GITHUB_WORKSPACE/$HALO_RELEASE_ASSET_PREFIX-release.zip" .)
+          (cd dist/halo-android-debug && zip -qr "$GITHUB_WORKSPACE/$HALO_RELEASE_ASSET_PREFIX-debug.zip" .)
+          cp "$HALO_RELEASE_ASSET_PREFIX-release.zip" halo-android-release.zip
+          cp "$HALO_RELEASE_ASSET_PREFIX-debug.zip" halo-android-debug.zip
           subject="$(printf '%s' "${MESSAGE:-$(git log -1 --format=%s)}" | head -n 1)"
           network_version="$(sed -n 's/^#define HALO_PORT_NETWORK_VERSION \([0-9]*\).*/\1/p' port/linux/include/halo_port_limits.h)"
-          printf '%s\n\nThe 32-bit Android app (armeabi-v7a) for Android TV boxes. Install halo-android-release.zip'"'"'s APK (adb install -r), or let the app update itself; halo-android-debug.zip'"'"'s app checks the game'"'"'s assertions, for reporting problems.\n\nCommit: %s\nBuild: %s\nNetwork version: %s\n' \
+          printf '%s\n\nOpenCE Onn GoogleTV '"$HALO_VERSION_NAME"': the 32-bit Android app (armeabi-v7a) for the Onn 4K GoogleTV boxes. Install opence-onn-googletv-release.zip'"'"'s APK (adb install -r), or let the app update itself; opence-onn-googletv-debug.zip'"'"'s app checks the game'"'"'s assertions, for reporting problems. (halo-android-release.zip and halo-android-debug.zip are the same, for the updater of apps from build 127 and before.)\n\nBased on OpenCE build '"${HALO_VERSION_NAME%%.*}"'.\nCommit: %s\nBuild: %s\nNetwork version: %s\n' \
             "$subject" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$GITHUB_SHA" \
             "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" "$network_version" > notes.md
-          gh release create "$tag" halo-android-release.zip halo-android-debug.zip --target "$GITHUB_SHA" --latest \
-            --title "Build $HALO_BUILD_NUMBER (${GITHUB_SHA:0:7})" --notes-file notes.md
+          gh release create "$tag" "$HALO_RELEASE_ASSET_PREFIX-release.zip" "$HALO_RELEASE_ASSET_PREFIX-debug.zip" \
+            halo-android-release.zip halo-android-debug.zip --target "$GITHUB_SHA" --latest \
+            --title "$HALO_VERSION_NAME" --notes-file notes.md
 
       - name: Keep the last five
         if: ${{ github.ref == 'refs/heads/armeabi-v7a' }}

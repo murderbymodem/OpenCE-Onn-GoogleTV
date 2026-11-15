@@ -303,9 +303,15 @@ Multiplayer rule: change nothing in the simulation or network messages; keep
 
 ## Builds and releases
 
-- CI: `.github/workflows/androidtv.yml`. Push to `armeabi-v7a` -> clang 22
-  (apt.llvm.org) + PGO (`pgo/halo_linux.profdata`), release `build-<run+100>`
-  with `halo-android-release.zip` and `halo-android-debug.zip`, latest, last five kept. Daily 07:41 UTC
+- CI: `.github/workflows/onn-googletv.yml` (`androidtv.yml` until 2026-11-15). Push to `armeabi-v7a` -> clang 22
+  (apt.llvm.org) + PGO (`pgo/halo_linux.profdata`), release `build-<base*100+revision>`, titled
+  `<base>.<revision>` (`tools/onn_googletv_version.sh`: base the main
+  project's newest release in the build, so 359.1 contains OpenCE build 359)
+  with `opence-onn-googletv-release.zip` and `-debug.zip`
+  (`HALO_RELEASE_ASSET_PREFIX`; copies as `halo-android-*.zip` for the
+  updater of apps from build 127 and before, to drop once every device has
+  updated),
+  latest, last five kept. Daily 07:41 UTC
   sync merges upstream main (issue on conflict). Upstream's Build and Server
   image workflows are disabled in the fork. Secrets: `ANDROID_KEYSTORE_BASE64`,
   `ANDROID_KEYSTORE_PASSWORD`, optional `SYNC_TOKEN` (fine-grained PAT,
@@ -318,9 +324,13 @@ Multiplayer rule: change nothing in the simulation or network messages; keep
   the device (build 14 -> CI build).
 - The updater (`Updater.java`) checks `BuildConfig.HALO_UPDATE_REPOSITORY`
   (HALO_UPDATE_REPOSITORY, else GITHUB_REPOSITORY, else upstream).
-- Signing key: the user holds `opence-androidtv-signing-key.zip` (keystore,
-  base64, password; alias `halo`). Never commit it. Builds 1-14 were made by
-  hand with this key; CI builds start at 101.
+- Signing key: the user holds it (the keystore, its base64 and password;
+  alias `halo`); the workflow has it as the `ANDROID_KEYSTORE_BASE64` and
+  `ANDROID_KEYSTORE_PASSWORD` secrets. Never commit it, and never make a new
+  one: an app signed with another key does not install over this one, and
+  uninstalling first deletes its game data. Builds 1-14 were made by hand
+  with this key; the workflow's were 101-127 (as androidtv.yml), then 35901
+  (359.1) on as onn-googletv.yml.
 - Local build (cloud session): Android SDK in `~/android-sdk`, NDK 29
   (`ANDROID_NDK_HOME` pinned to 29; NDK 30 also installed, its clang is 21).
   PGO needs clang 22, not available locally:

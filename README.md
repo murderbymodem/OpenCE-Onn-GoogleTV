@@ -6,7 +6,7 @@
 
 
 <p align="center">
-  <a href="https://github.com/murderbymodem/OpenCE-Onn-GoogleTV/releases/latest"><img src="https://img.shields.io/github/v/release/murderbymodem/OpenCE-Onn-GoogleTV?label=Download%20Onn%20GoogleTV&style=for-the-badge" alt="Download for Onn GoogleTV"></a>
+  <a href="https://github.com/murderbymodem/OpenCE-Onn-GoogleTV/releases/latest"><img src="https://img.shields.io/github/v/release/murderbymodem/OpenCE-Onn-GoogleTV?label=Download%20Onn%20GoogleTV&display_name=release&style=for-the-badge" alt="Download for Onn GoogleTV"></a>
   <a href="https://github.com/OpenCommunityEdition/OpenCE/releases/latest"><img src="https://img.shields.io/github/v/release/OpenCommunityEdition/OpenCE?label=Download&style=for-the-badge" alt="Download"></a>
   <a href="https://halocombatevolved.com/"><img src="https://img.shields.io/badge/Play-in_browser-blue?style=for-the-badge" alt="Play in browser"></a>
   <a href="https://discord.gg/9gqcHyr5km"><img src="https://img.shields.io/badge/Discord-join-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
@@ -52,17 +52,24 @@ The 32-bit Onn GoogleTV app has been tested on:
 | onn 4K Pro Streaming Device Gen 2 (2026), Android 14 (32-bit) | Amlogic S905X5M, 4x Cortex-A55 | Arm Mali-G310 (OpenGL ES 3.2) | 3 GB |
 | onn 4K Plus Streaming Device (2026), Android 14 (32-bit) | Amlogic S905X5M, 4x Cortex-A55 | Arm Mali-G310 (OpenGL ES 3.2) | 2 GB |
 
+Both hold about 30 fps in small multiplayer matches, with occasional dips below
+that. Some of the main project's features, such as high player counts and
+modded co-op campaigns, may not be playable on this hardware.
+
+Older onn boxes and other 32-bit Android TV and GoogleTV boxes may work, but are
+untested.
+
 ## Download
 
 GitHub Actions builds the game for each commit. 
 
 Builds for latest release (the Onn GoogleTV row is this fork's own release, built by
-[androidtv.yml](.github/workflows/androidtv.yml) for each commit to `armeabi-v7a`;
+[onn-googletv.yml](.github/workflows/onn-googletv.yml) for each commit to `armeabi-v7a`;
 the others are the main project's):
 
 | Platform | Release | Debug | Guide |
 | --- | --- | --- | --- |
-| **Onn GoogleTV 32-bit** (armeabi-v7a, this fork) | [halo-android-release.zip](https://github.com/murderbymodem/OpenCE-Onn-GoogleTV/releases/latest/download/halo-android-release.zip) | [halo-android-debug.zip](https://github.com/murderbymodem/OpenCE-Onn-GoogleTV/releases/latest/download/halo-android-debug.zip) | [The 32-bit app](port/android/README.md#the-32-bit-app) |
+| **Onn GoogleTV 32-bit** (armeabi-v7a, this fork) | [opence-onn-googletv-release.zip](https://github.com/murderbymodem/OpenCE-Onn-GoogleTV/releases/latest/download/opence-onn-googletv-release.zip) | [opence-onn-googletv-debug.zip](https://github.com/murderbymodem/OpenCE-Onn-GoogleTV/releases/latest/download/opence-onn-googletv-debug.zip) | [The 32-bit app](port/android/README.md#the-32-bit-app) |
 | Linux | [halo-linux-release.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-linux-release.zip) | [halo-linux-debug.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-linux-debug.zip) | [Linux](port/linux/README.md) |
 | Windows | [halo-windows-release.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-windows-release.zip) | [halo-windows-debug.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-windows-debug.zip) | [Windows](port/windows/README.md) |
 | Android | [halo-android-release.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-android-release.zip) | [halo-android-debug.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-android-debug.zip) | [Android](port/android/README.md) |
