@@ -4,10 +4,17 @@ name: OpenCE Onn GoogleTV (armeabi-v7a)
 # app") of this fork, for Android TV boxes whose Android runs only 32-bit apps.
 #
 # build: on each push to armeabi-v7a (and by hand), the release app,
-# compiled with clang 22 so that the profiles in pgo/ optimise it, and the
-# debug app (assertions checked, for finding problems), both signed with the
-# ANDROID_KEYSTORE_BASE64 and ANDROID_KEYSTORE_PASSWORD secrets' key, are
-# published as a release build-<n> holding opence-onn-googletv-release.zip
+# compiled with the clang whose profiles pgo/ holds (PROFILE_LLVM_MAJOR in
+# tools/linux_build.py), so that they optimise it, and the debug app
+# (assertions checked, for finding problems). The build job runs the
+# repository's code (the main project's, merged by the sync) with no secret:
+# Gradle signs the apps with its debug key. The sign job, which runs none of
+# the repository's code, signs them again with the app's key (the
+# OPENCE_ONN_GOOGLETV_KEYSTORE_BASE64 and OPENCE_ONN_GOOGLETV_KEYSTORE_PASSWORD
+# secrets; names of this fork's own, so that no workflow of the main
+# project's that comes with a merge finds them), checks that the key is the
+# one the installed apps have, and publishes them as a release build-<n>
+# holding opence-onn-googletv-release.zip
 # and opence-onn-googletv-debug.zip (and the same as halo-android-release.zip
 # and halo-android-debug.zip, which the apps of builds 127 and before
 # download), the newest marked latest: the app's self-updater
@@ -34,9 +41,11 @@ name: OpenCE Onn GoogleTV (armeabi-v7a)
 # after its last release wait for its next one. A merge
 # that conflicts is not pushed: the run fails with an error saying so (and
 # opens an issue, where the repository has issues). GitHub's own token cannot
-# push a merge that changes .github/workflows; the SYNC_TOKEN secret, a token
-# with contents and workflows write access to this repository, can, and its
-# pushes start the build themselves.
+# push a merge that changes .github/workflows; the OPENCE_ONN_GOOGLETV_SYNC_TOKEN
+# secret, a token with contents and workflows write access to this
+# repository, can, and its pushes start the build themselves. A token that no
+# longer works (expired) is reported in an issue, and the sync goes on with
+# GitHub's own token.
 #
 # The main project's own workflows (build.yml: every platform, its releases
 # and its web site; server-image.yml) are for it: they stay in the branch, so
@@ -86,11 +95,35 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
     steps:
+      # the sync token, if it still works: an expired one would stop every
+      # sync at the checkout, so it is reported (an issue) and left aside
+      - name: Sync token
+        id: token
+        env:
+          SYNC_TOKEN: ${{ secrets.OPENCE_ONN_GOOGLETV_SYNC_TOKEN }}
+        run: |
+          if [ -z "$SYNC_TOKEN" ]; then
+            echo "no OPENCE_ONN_GOOGLETV_SYNC_TOKEN: GitHub's own token (it cannot push merges that change workflows)"
+            echo "works=false" >> "$GITHUB_OUTPUT"
+          elif GH_TOKEN="$SYNC_TOKEN" gh api "repos/$GH_REPO" --jq .full_name > /dev/null 2>&1; then
+            echo "works=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "works=false" >> "$GITHUB_OUTPUT"
+            title="The sync token no longer works"
+            echo "::warning title=$title::OPENCE_ONN_GOOGLETV_SYNC_TOKEN was refused (expired?): renew it; the sync uses GitHub's own token meanwhile"
+            if [ "$(gh api "repos/$GH_REPO" --jq .has_issues)" = "true" ] &&
+              [ -z "$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[].number')" ]; then
+              printf 'GitHub refused the OPENCE_ONN_GOOGLETV_SYNC_TOKEN secret (it has probably expired).\n\nMake a new fine-grained token (Settings, Developer settings, Fine-grained tokens) for this repository with Contents and Workflows read and write access, and put it in the secret (this repository'"'"'s Settings, Secrets and variables, Actions). Until then the sync merges with GitHub'"'"'s own token, which cannot push a merge that changes the main project'"'"'s workflows.\n\nRun: %s\n' \
+                "$GITHUB_SERVER_URL/$GH_REPO/actions/runs/$GITHUB_RUN_ID" > issue.md
+              gh issue create --title "$title" --body-file issue.md || true
+            fi
+          fi
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ env.BRANCH }}
           fetch-depth: 0
-          token: ${{ secrets.SYNC_TOKEN || github.token }}
+          token: ${{ steps.token.outputs.works == 'true' && secrets.OPENCE_ONN_GOOGLETV_SYNC_TOKEN || github.token }}
 
       - name: Merge the main project's newest release
         id: merge
@@ -132,7 +165,7 @@ jobs:
           if ! git push origin "HEAD:$BRANCH" 2> push.log; then
             cat push.log
             if grep -q "workflow" push.log; then
-              printf 'The main project changed its workflows (.github/workflows), which GitHub'"'"'s own token cannot push.\n\nAdd a SYNC_TOKEN secret (a fine-grained token with Contents and Workflows read and write access to this repository), or merge %s %s into %s by hand.\n\nRun: %s\n' \
+              printf 'The main project changed its workflows (.github/workflows), which GitHub'"'"'s own token cannot push.\n\nAdd an OPENCE_ONN_GOOGLETV_SYNC_TOKEN secret (a fine-grained token with Contents and Workflows read and write access to this repository), or merge %s %s into %s by hand.\n\nRun: %s\n' \
                 "$UPSTREAM" "$release" "$BRANCH" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > issue.md
               report "The sync cannot push the main project's changes" issue.md
             fi
@@ -141,14 +174,15 @@ jobs:
           echo "merged $release ($count commits)"
           echo "merged=true" >> "$GITHUB_OUTPUT"
 
-      # (a push with GitHub's own token starts no workflow; one with
-      # SYNC_TOKEN starts the build itself)
+      # (a push with GitHub's own token starts no workflow; one with the sync
+      # token starts the build itself, unless the merge changed only .md
+      # files, which pushes do not build)
       - name: Build the merge
         if: ${{ steps.merge.outputs.merged == 'true' }}
         env:
-          HAS_SYNC_TOKEN: ${{ secrets.SYNC_TOKEN != '' }}
+          PUSHED_WITH_SYNC_TOKEN: ${{ steps.token.outputs.works }}
         run: |
-          if [ "$HAS_SYNC_TOKEN" != "true" ]; then
+          if [ "$PUSHED_WITH_SYNC_TOKEN" != "true" ] || ! git diff --name-only HEAD^1 HEAD | grep -qv '\.md$'; then
             gh workflow run onn-googletv.yml --ref "$BRANCH"
           fi
 
@@ -156,14 +190,23 @@ jobs:
     if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && !inputs.sync) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 90
+    # (no secret here: this job runs the repository's code)
     permissions:
-      contents: write
+      contents: read
+    outputs:
+      code: ${{ steps.version.outputs.code }}
+      name: ${{ steps.version.outputs.name }}
+      network_version: ${{ steps.version.outputs.network_version }}
+      subject: ${{ steps.version.outputs.subject }}
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
     steps:
-      # ninja, ccache, and clang 22 (LLVM's own packages), whose profiles in
-      # pgo/ the guest is optimised with
+      - uses: actions/checkout@v4
+
+      # ninja, ccache, and the clang of the main project's profiles in pgo/
+      # (PROFILE_LLVM_MAJOR, tools/linux_build.py: read, not run), from
+      # LLVM's own packages, which the guest is compiled and optimised with
       - name: Install the toolchain
         run: |
           mkdir -p "$RUNNER_TEMP/tools"
@@ -176,17 +219,24 @@ jobs:
           unzip -q ninja.zip -d "$RUNNER_TEMP/tools" && rm ninja.zip
           tar -xJf ccache.tar.xz -C "$RUNNER_TEMP/tools" --strip-components=1 ccache-4.10.2-linux-x86_64/ccache && rm ccache.tar.xz
           echo "$RUNNER_TEMP/tools" >> "$GITHUB_PATH"
+          major="$(sed -n 's/^PROFILE_LLVM_MAJOR = \([0-9][0-9]*\).*/\1/p' tools/linux_build.py)"
+          if [ -z "$major" ]; then
+            major=22
+            echo "::warning::no PROFILE_LLVM_MAJOR in tools/linux_build.py: clang $major"
+          fi
           curl -fsSL -o llvm.sh https://apt.llvm.org/llvm.sh
-          sudo bash llvm.sh 22
-          clang-22 --version
+          sudo bash llvm.sh "$major"
+          clang-"$major" --version
           # (the guest's link-time optimisation links with it)
-          "$(clang-22 -print-prog-name=ld.lld)" --version
-
-      - uses: actions/checkout@v4
+          "$(clang-"$major" -print-prog-name=ld.lld)" --version
+          echo "CI_ANDROID_GUEST_CC=clang-$major" >> "$GITHUB_ENV"
 
       # the version (tools/onn_googletv_version.sh): this commit's recent
       # history and the main project's, to find its newest release in it
       - name: Version
+        id: version
+        env:
+          MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           git fetch -q --no-tags --depth=500 origin "$GITHUB_SHA"
           git fetch -q --no-tags --depth=500 "$UPSTREAM" "$UPSTREAM_BRANCH"
@@ -197,6 +247,12 @@ jobs:
           echo "version $name (build-$code)"
           echo "HALO_BUILD_NUMBER=$code" >> "$GITHUB_ENV"
           echo "HALO_VERSION_NAME=$name" >> "$GITHUB_ENV"
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "network_version=$(sed -n 's/^#define HALO_PORT_NETWORK_VERSION \([0-9]*\).*/\1/p' port/linux/include/halo_port_limits.h)" >> "$GITHUB_OUTPUT"
+          echo "subject=$(printf '%s' "${MESSAGE:-$(git log -1 --format=%s)}" | head -n 1)" >> "$GITHUB_OUTPUT"
+          # (the release's archives' name, which the updater downloads)
+          echo "HALO_RELEASE_ASSET_PREFIX=opence-onn-googletv" >> "$GITHUB_ENV"
 
       - uses: actions/cache@v4
         with:
@@ -216,25 +272,11 @@ jobs:
             ~/.gradle/wrapper
           key: gradle-${{ hashFiles('port/android/**/*.gradle*', 'port/android/gradle/wrapper/gradle-wrapper.properties') }}
 
-      - name: Signing key
-        env:
-          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-        run: |
-          if [ -z "$KEYSTORE" ]; then
-            echo "::error::no ANDROID_KEYSTORE_BASE64 secret: a release signed with another key would not install over the app"
-            exit 1
-          fi
-          printf '%s' "$KEYSTORE" | base64 -d > "$RUNNER_TEMP/halo.keystore"
-          echo "HALO_ANDROID_KEYSTORE=$RUNNER_TEMP/halo.keystore" >> "$GITHUB_ENV"
-          # (the release's archives' name, which the updater downloads)
-          echo "HALO_RELEASE_ASSET_PREFIX=opence-onn-googletv" >> "$GITHUB_ENV"
-
+      # (signed with Gradle's debug key: the sign job signs them again)
       - name: Release build
         env:
-          HALO_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           CI_ANDROID_ABIS: armeabi-v7a
-          CI_ANDROID_GUEST_CC: clang-22
-          # (the guest optimised as one module, linked by clang 22's ld.lld)
+          # (the guest optimised as one module, linked by its clang's ld.lld)
           CI_ANDROID_GUEST_LTO: "1"
           CI_COMPILER_LAUNCHER: ccache
           CCACHE_DIR: ${{ github.workspace }}/.ccache
@@ -250,9 +292,7 @@ jobs:
       # project's debug builds: tools/ci_build.py)
       - name: Debug build
         env:
-          HALO_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           CI_ANDROID_ABIS: armeabi-v7a
-          CI_ANDROID_GUEST_CC: clang-22
           CI_COMPILER_LAUNCHER: ccache
           CCACHE_DIR: ${{ github.workspace }}/.ccache
         run: python3 tools/ci_build.py android debug
@@ -265,6 +305,66 @@ jobs:
             unzip -l "$apk" | grep -q "assets/halo_guest_armv8.elf"
             ! unzip -l "$apk" | grep -q "lib/arm64-v8a/"
           done
+
+      # (for the sign job only)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unsigned
+          path: dist
+          retention-days: 1
+
+  # The apps signed with the app's key, and published. This job runs none of
+  # the repository's code (no checkout): the key is only here.
+  sign:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      # the certificate of the key the installed apps are signed with: an app
+      # signed with any other does not install over them (and uninstalling
+      # first deletes the game data), so another is refused here
+      KEY_CERTIFICATE_SHA256: dc9787ca36279161fbcfdb2a5042afbc7427a37945b4ef0657554b9a222fec58
+      KEY_ALIAS: halo
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: unsigned
+          path: dist
+
+      - name: Sign
+        env:
+          KEYSTORE: ${{ secrets.OPENCE_ONN_GOOGLETV_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.OPENCE_ONN_GOOGLETV_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
+            echo "::error::no OPENCE_ONN_GOOGLETV_KEYSTORE_BASE64 or OPENCE_ONN_GOOGLETV_KEYSTORE_PASSWORD secret: the apps cannot be signed with the app's key"
+            exit 1
+          fi
+          printf '%s' "$KEYSTORE" | base64 -d > "$RUNNER_TEMP/key.keystore"
+          # signs every APK under dist/ with the key, in place: the build signed it
+          # with Gradle's debug key, which is taken out first
+          tools="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)"
+          for apk in dist/*/*.apk; do
+            zip -q -d "$apk" 'META-INF/*.SF' 'META-INF/*.RSA' 'META-INF/*.EC' 'META-INF/MANIFEST.MF' > /dev/null 2>&1 || true
+            "$tools/zipalign" -f -P 16 4 "$apk" "$apk.aligned"
+            "$tools/apksigner" sign --ks "$RUNNER_TEMP/key.keystore" --ks-key-alias "$KEY_ALIAS" \
+              --ks-pass env:KEYSTORE_PASSWORD --key-pass env:KEYSTORE_PASSWORD --v2-signing-enabled true --out "$apk" "$apk.aligned"
+            rm -f "$apk.aligned" "$apk.idsig"
+            # (signed by this key alone, the one the installed apps have)
+            certificate="$("$tools/apksigner" verify --print-certs "$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+            signers="$("$tools/apksigner" verify --print-certs "$apk" | grep -c '^Signer #[0-9]* certificate DN')"
+            if [ "$certificate" != "$KEY_CERTIFICATE_SHA256" ] || [ "$signers" != 1 ]; then
+              echo "::error::$apk is signed by $certificate ($signers signers), not the app's key $KEY_CERTIFICATE_SHA256: a different key in the secret? Its apps would not install over the installed ones"
+              exit 1
+            fi
+            "$tools/zipalign" -c -P 16 4 "$apk"
+            echo "$apk: signed, $certificate"
+          done
+          rm -f "$RUNNER_TEMP/key.keystore"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -286,21 +386,23 @@ jobs:
       - name: Publish
         if: ${{ github.ref == 'refs/heads/armeabi-v7a' }}
         env:
-          MESSAGE: ${{ github.event.head_commit.message }}
+          CODE: ${{ needs.build.outputs.code }}
+          NAME: ${{ needs.build.outputs.name }}
+          NETWORK_VERSION: ${{ needs.build.outputs.network_version }}
+          SUBJECT: ${{ needs.build.outputs.subject }}
+          PREFIX: opence-onn-googletv
         run: |
-          tag="build-$HALO_BUILD_NUMBER"
-          (cd dist/halo-android-release && zip -qr "$GITHUB_WORKSPACE/$HALO_RELEASE_ASSET_PREFIX-release.zip" .)
-          (cd dist/halo-android-debug && zip -qr "$GITHUB_WORKSPACE/$HALO_RELEASE_ASSET_PREFIX-debug.zip" .)
-          cp "$HALO_RELEASE_ASSET_PREFIX-release.zip" halo-android-release.zip
-          cp "$HALO_RELEASE_ASSET_PREFIX-debug.zip" halo-android-debug.zip
-          subject="$(printf '%s' "${MESSAGE:-$(git log -1 --format=%s)}" | head -n 1)"
-          network_version="$(sed -n 's/^#define HALO_PORT_NETWORK_VERSION \([0-9]*\).*/\1/p' port/linux/include/halo_port_limits.h)"
-          printf '%s\n\nOpenCE Onn GoogleTV '"$HALO_VERSION_NAME"': the 32-bit Android app (armeabi-v7a) for the Onn 4K GoogleTV boxes. Install opence-onn-googletv-release.zip'"'"'s APK (adb install -r), or let the app update itself; opence-onn-googletv-debug.zip'"'"'s app checks the game'"'"'s assertions, for reporting problems. (halo-android-release.zip and halo-android-debug.zip are the same, for the updater of apps from build 127 and before.)\n\nBased on OpenCE build '"${HALO_VERSION_NAME%%.*}"'.\nCommit: %s\nBuild: %s\nNetwork version: %s\n' \
-            "$subject" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$GITHUB_SHA" \
-            "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" "$network_version" > notes.md
-          gh release create "$tag" "$HALO_RELEASE_ASSET_PREFIX-release.zip" "$HALO_RELEASE_ASSET_PREFIX-debug.zip" \
+          tag="build-$CODE"
+          (cd dist/halo-android-release && zip -qr "$GITHUB_WORKSPACE/$PREFIX-release.zip" .)
+          (cd dist/halo-android-debug && zip -qr "$GITHUB_WORKSPACE/$PREFIX-debug.zip" .)
+          cp "$PREFIX-release.zip" halo-android-release.zip
+          cp "$PREFIX-debug.zip" halo-android-debug.zip
+          printf '%s\n\nOpenCE Onn GoogleTV '"$NAME"': the 32-bit Android app (armeabi-v7a) for the Onn 4K GoogleTV boxes. Install opence-onn-googletv-release.zip'"'"'s APK (adb install -r), or let the app update itself; opence-onn-googletv-debug.zip'"'"'s app checks the game'"'"'s assertions, for reporting problems. (halo-android-release.zip and halo-android-debug.zip are the same, for the updater of apps from build 127 and before.)\n\nBased on OpenCE build '"${NAME%%.*}"'.\nCommit: %s\nBuild: %s\nNetwork version: %s\n' \
+            "$SUBJECT" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$GITHUB_SHA" \
+            "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" "$NETWORK_VERSION" > notes.md
+          gh release create "$tag" "$PREFIX-release.zip" "$PREFIX-debug.zip" \
             halo-android-release.zip halo-android-debug.zip --target "$GITHUB_SHA" --latest \
-            --title "$HALO_VERSION_NAME" --notes-file notes.md
+            --title "$NAME" --notes-file notes.md
 
       - name: Keep the last five
         if: ${{ github.ref == 'refs/heads/armeabi-v7a' }}

@@ -317,9 +317,17 @@ Multiplayer rule: change nothing in the simulation or network messages; keep
   sync merges upstream's newest release (its highest `build-<n>` tag, not
   the tip of main), so each sync's release is exactly `<n>` (issue on
   conflict). Upstream's Build and Server
-  image workflows are disabled in the fork. Secrets: `ANDROID_KEYSTORE_BASE64`,
-  `ANDROID_KEYSTORE_PASSWORD`, optional `SYNC_TOKEN` (fine-grained PAT,
-  Contents + Workflows write) for merges that touch workflows.
+  image workflows are disabled in the fork. Secrets (named for the fork, so
+  that no workflow of upstream's that arrives with a merge reads them):
+  `OPENCE_ONN_GOOGLETV_KEYSTORE_BASE64`, `OPENCE_ONN_GOOGLETV_KEYSTORE_PASSWORD`,
+  optional `OPENCE_ONN_GOOGLETV_SYNC_TOKEN` (fine-grained PAT, Contents +
+  Workflows write) for merges that touch workflows; a refused (expired) one
+  opens an issue and the sync falls back to GitHub's token. The build job
+  runs the repository's code with no secret (Gradle's debug key); the sign
+  job, with no checkout, re-signs the APKs with the key (apksigner) and
+  refuses any key whose certificate is not SHA-256 `dc9787ca...2fec58`
+  (`KEY_CERTIFICATE_SHA256`), then publishes. The guest's clang is
+  `PROFILE_LLVM_MAJOR` of `tools/linux_build.py`, upstream's profiles' own.
 - Repository: default branch `armeabi-v7a`; `main` mirrors upstream and
   builds nothing; Pages off; issues off (the sync reports problems as a failed
   run's error, and as an issue only if issues are turned on). Upstream's
@@ -329,8 +337,9 @@ Multiplayer rule: change nothing in the simulation or network messages; keep
 - The updater (`Updater.java`) checks `BuildConfig.HALO_UPDATE_REPOSITORY`
   (HALO_UPDATE_REPOSITORY, else GITHUB_REPOSITORY, else upstream).
 - Signing key: the user holds it (the keystore, its base64 and password;
-  alias `halo`); the workflow has it as the `ANDROID_KEYSTORE_BASE64` and
-  `ANDROID_KEYSTORE_PASSWORD` secrets. Never commit it, and never make a new
+  alias `halo`, certificate SHA-256 `dc9787ca36279161fbcfdb2a5042afbc7427a37945b4ef0657554b9a222fec58`); the
+  workflow has it as the `OPENCE_ONN_GOOGLETV_KEYSTORE_BASE64` and
+  `OPENCE_ONN_GOOGLETV_KEYSTORE_PASSWORD` secrets. Never commit it, and never make a new
   one: an app signed with another key does not install over this one, and
   uninstalling first deletes its game data. Builds 1-14 were made by hand
   with this key; the workflow's were 101-127 (as androidtv.yml), then 35901

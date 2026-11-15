@@ -785,9 +785,10 @@ writes `memory_map.txt` (refer to "Game data").
 
 The fork that maintains the 32-bit app builds and publishes it with
 `.github/workflows/onn-googletv.yml`: each push to its `armeabi-v7a` branch is
-built with clang 22 (so that the profiles in `pgo/` optimise it), signed
-with the `ANDROID_KEYSTORE_BASE64` and `ANDROID_KEYSTORE_PASSWORD` secrets'
-key and published as a release `build-<n>` with `opence-onn-googletv-release.zip`
+built with the clang of the profiles in `pgo/` (so that they optimise it),
+signed in a job of its own, which runs none of the repository's code, with
+the `OPENCE_ONN_GOOGLETV_KEYSTORE_BASE64` and
+`OPENCE_ONN_GOOGLETV_KEYSTORE_PASSWORD` secrets' key, and published as a release `build-<n>` with `opence-onn-googletv-release.zip`
 and `opence-onn-googletv-debug.zip` (`HALO_RELEASE_ASSET_PREFIX`), which the app's self-updater of those builds
 installs (each its own kind); every six hours the main
 project's newest release is merged in, to keep the network version the same
