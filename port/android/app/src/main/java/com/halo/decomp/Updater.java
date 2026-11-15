@@ -36,7 +36,8 @@ import java.util.zip.ZipInputStream;
  * the latest release when it starts, on a thread of its own, and if it is
  * newer asks the player whether to update:
  *
- * - Yes: the release's app (halo-android-release.zip or -debug.zip) is
+ * - Yes: the release's app (halo-android-release.zip or -debug.zip, a fork's
+ *   own name before -release: HALO_RELEASE_ASSET_PREFIX) is
  *   downloaded and handed to Android's package installer, which replaces the
  *   game (closing it) and offers to open the new version.
  * - No: nothing, until the next start.
@@ -233,7 +234,7 @@ final class Updater {
     /* ---------- updating */
 
     private static void update(Activity activity, int latest) {
-        String asset = "halo-android-" + (BuildConfig.DEBUG ? "debug" : "release") + ".zip";
+        String asset = BuildConfig.HALO_RELEASE_ASSET_PREFIX + "-" + (BuildConfig.DEBUG ? "debug" : "release") + ".zip";
         File directory = new File(activity.getCacheDir(), UpdateProvider.DIRECTORY);
         LinearLayout layout = new LinearLayout(activity);
         TextView status = new TextView(activity);

@@ -62,7 +62,7 @@ the others are the main project's):
 
 | Platform | Release | Debug | Guide |
 | --- | --- | --- | --- |
-| **Onn GoogleTV 32-bit** (armeabi-v7a, this fork) | [halo-android-release.zip](https://github.com/murderbymodem/OpenCE-Onn-GoogleTV/releases/latest/download/halo-android-release.zip) | [halo-android-debug.zip](https://github.com/murderbymodem/OpenCE-Onn-GoogleTV/releases/latest/download/halo-android-debug.zip) | [The 32-bit app](port/android/README.md#the-32-bit-app) |
+| **Onn GoogleTV 32-bit** (armeabi-v7a, this fork) | [opence-onn-googletv-release.zip](https://github.com/murderbymodem/OpenCE-Onn-GoogleTV/releases/latest/download/opence-onn-googletv-release.zip) | [opence-onn-googletv-debug.zip](https://github.com/murderbymodem/OpenCE-Onn-GoogleTV/releases/latest/download/opence-onn-googletv-debug.zip) | [The 32-bit app](port/android/README.md#the-32-bit-app) |
 | Linux | [halo-linux-release.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-linux-release.zip) | [halo-linux-debug.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-linux-debug.zip) | [Linux](port/linux/README.md) |
 | Windows | [halo-windows-release.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-windows-release.zip) | [halo-windows-debug.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-windows-debug.zip) | [Windows](port/windows/README.md) |
 | Android | [halo-android-release.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-android-release.zip) | [halo-android-debug.zip](https://github.com/OpenCommunityEdition/OpenCE/releases/latest/download/halo-android-debug.zip) | [Android](port/android/README.md) |

@@ -49,6 +49,9 @@ android {
         versionName System.getenv("HALO_VERSION_NAME") ?: (buildNumber > 0 ? "build " + buildNumber : "1.0")
         buildConfigField "int", "HALO_BUILD_NUMBER", "${buildNumber}"
         buildConfigField "String", "HALO_UPDATE_REPOSITORY", "\"${updateRepository}\""
+        // the release's archives the updater downloads, <prefix>-release.zip
+        // and <prefix>-debug.zip (HALO_RELEASE_ASSET_PREFIX: a fork's own name)
+        buildConfigField "String", "HALO_RELEASE_ASSET_PREFIX", "\"${System.getenv("HALO_RELEASE_ASSET_PREFIX") ?: "halo-android"}\""
         ndk {
             abiFilters(*haloAbis)
         }

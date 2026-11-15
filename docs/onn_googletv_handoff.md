@@ -305,7 +305,10 @@ Multiplayer rule: change nothing in the simulation or network messages; keep
 
 - CI: `.github/workflows/onn-googletv.yml` (`androidtv.yml` until 2026-11-15). Push to `armeabi-v7a` -> clang 22
   (apt.llvm.org) + PGO (`pgo/halo_linux.profdata`), release `build-<run+200>`, titled `1.0.<run>`
-  with `halo-android-release.zip` and `halo-android-debug.zip`, latest, last five kept. Daily 07:41 UTC
+  with `opence-onn-googletv-release.zip` and `-debug.zip`
+  (`HALO_RELEASE_ASSET_PREFIX`; copies as `halo-android-*.zip` for the
+  updater of apps from before 1.0, to drop once every device has 1.0),
+  latest, last five kept. Daily 07:41 UTC
   sync merges upstream main (issue on conflict). Upstream's Build and Server
   image workflows are disabled in the fork. Secrets: `ANDROID_KEYSTORE_BASE64`,
   `ANDROID_KEYSTORE_PASSWORD`, optional `SYNC_TOKEN` (fine-grained PAT,
