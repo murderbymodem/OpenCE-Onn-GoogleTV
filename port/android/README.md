@@ -789,8 +789,8 @@ built with clang 22 (so that the profiles in `pgo/` optimise it), signed
 with the `ANDROID_KEYSTORE_BASE64` and `ANDROID_KEYSTORE_PASSWORD` secrets'
 key and published as a release `build-<n>` with `opence-onn-googletv-release.zip`
 and `opence-onn-googletv-debug.zip` (`HALO_RELEASE_ASSET_PREFIX`), which the app's self-updater of those builds
-installs (each its own kind); every day the main
-project's new commits are merged in, to keep the network version the same
+installs (each its own kind); every six hours the main
+project's newest release is merged in, to keep the network version the same
 as the main project's, and built. CI_ANDROID_ABIS and CI_ANDROID_GUEST_CC
 give `tools/ci_build.py` the ABIs and the guest's compiler.
 

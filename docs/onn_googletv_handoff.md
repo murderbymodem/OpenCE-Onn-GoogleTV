@@ -311,8 +311,10 @@ Multiplayer rule: change nothing in the simulation or network messages; keep
   (`HALO_RELEASE_ASSET_PREFIX`; copies as `halo-android-*.zip` for the
   updater of apps from build 127 and before, to drop once every device has
   updated),
-  latest, last five kept. Daily 07:41 UTC
-  sync merges upstream main (issue on conflict). Upstream's Build and Server
+  latest, last five kept. Every six hours (:17 past 00, 06, 12, 18 UTC) the
+  sync merges upstream's newest release (its highest `build-<n>` tag, not
+  the tip of main), so each sync's release is exactly `<n>.1` (issue on
+  conflict). Upstream's Build and Server
   image workflows are disabled in the fork. Secrets: `ANDROID_KEYSTORE_BASE64`,
   `ANDROID_KEYSTORE_PASSWORD`, optional `SYNC_TOKEN` (fine-grained PAT,
   Contents + Workflows write) for merges that touch workflows.
