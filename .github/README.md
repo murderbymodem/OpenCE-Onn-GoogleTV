@@ -105,5 +105,5 @@ version (`AGPL-3.0-or-later`). It comes with no warranty. The full text is in
 
 
 ## Disclaimer
-OpenCE (Open Community Edition) is an unofficial fan project. It is not endorsed by or affiliated with Microsoft, Xbox Game Studios, Halo Studios, Activision or Bungie. Halo and Halo: Combat Evolved are trademarks of Microsoft Corporation; Halo © Microsoft Corporation.
+OpenCE (Open Community Edition) is an unofficial fan project. It is not endorsed by or affiliated with Microsoft, Xbox Game Studios, Halo Studios, Activision or Bungie. This fork is not endorsed by or affiliated with Walmart or Google. Halo and Halo: Combat Evolved are trademarks of Microsoft Corporation; Halo © Microsoft Corporation.
 No game data is included. You must provide your own copy of the game.
