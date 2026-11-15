@@ -9,13 +9,16 @@
   <a href="https://github.com/murderbymodem/OpenCE-Onn-GoogleTV/releases/latest"><img src="https://img.shields.io/github/v/release/murderbymodem/OpenCE-Onn-GoogleTV?label=Download%20Onn%20GoogleTV&display_name=release&style=for-the-badge" alt="Download for Onn GoogleTV"></a>
 </p>
 
-**OpenCE** (Open Community Edition) is an open source port of the Halo: Combat Evolved decompilation (Halo CE) based on an early Xbox development build (2342) and forked from
-[bnunu/halo-1](https://github.com/bnunu/halo-1). The project aims to enhance the existing game and adds many features, such as 128-player multiplayer, online campaign co-op, mod packs, field-of-view settings, a server browser, peer-to-peer hosting, automatic map downloads, voice chat, support for Custom Edition maps and much more! 
+[**OpenCE**](https://github.com/OpenCommunityEdition/OpenCE) (Open Community Edition) is an open source port of the Halo: Combat Evolved decompilation (Halo CE) based on an early Xbox development build (2342) and forked from
+[bnunu/halo-1](https://github.com/bnunu/halo-1).
 
-The game runs natively on Windows, Linux, Android **(now including 32-bit armeabi-v7a, this fork)** and in the web browser with nothing to install. A macOS port is in progress. Worth noting that it is not an emulator, **the game's own code is compiled for each platform** with a new layer in place of the Xbox's hardware. Runs on OpenGL (Android is on OpenGL ES and WebGL 2 in the browser). Sound, input, gamepads are all handled through SDL3. The game currently draws a frame every refresh of your display with Smooth Motion enabled, while the simulation runs at 30 ticks just like the original Xbox. 
-
-<img width="1284" height="1007" alt="The game running on Windows" src="https://github.com/user-attachments/assets/0a4412e1-f6d3-48ed-8e17-0a374c2122f1" />
-<p align="center"><em>OpenCE running on Windows (release build)</em></p>
+This fork builds OpenCE as a 32-bit Android app (armeabi-v7a) for the 2026
+onn 4K Pro and onn 4K Plus GoogleTV boxes, whose Android runs only 32-bit apps
+and so cannot install the main project's 64-bit Android build. It follows the
+main project closely: every six hours it takes in each new OpenCE release, and
+builds and publishes it under the same release number, with the defaults
+tuned for the boxes' hardware. Nothing that a network game depends on is
+changed, so you can play online with players of the main project.
 
 ## A copy of Halo: Combat Evolved is required
 
