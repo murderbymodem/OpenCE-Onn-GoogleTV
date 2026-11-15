@@ -1,6 +1,10 @@
 #include "host.h"
 #include "../include/android_render_policy.h"
 #include <sys/system_properties.h>
+/* (OpenCE Onn GoogleTV's changes to the chip's family) */
+#if __has_include("host_render_policy_onn_googletv.h")
+#include "host_render_policy_onn_googletv.h"
+#endif
 
 int host_android_chip_family(void)
 {
@@ -17,19 +21,8 @@ int host_android_chip_family(void)
 	family = android_chip_classify(manufacturer, model, hardware, platform);
 	host_logf(HOST_LOG_INFO, "render chip: manufacturer=%s model=%s hardware=%s platform=%s family=%d",
 		manufacturer, model, hardware, platform, family);
-	/* adb shell setprop debug.halo.render_chip <family>: the policy of
-	another family, for finding which a device's rendering needs (0 unknown:
-	every compatibility path; 1 Snapdragon; 2 MediaTek; 3 other); ""
-	(adb shell setprop debug.halo.render_chip "") goes back to the device's */
-	{
-		char forced[PROP_VALUE_MAX] = { 0 };
-
-		if (__system_property_get("debug.halo.render_chip", forced) > 0 && forced[0] >= '0' && forced[0] <= '3' &&
-			!forced[1])
-		{
-			family = forced[0] - '0';
-			host_logf(HOST_LOG_WARN, "render chip: family %d (debug.halo.render_chip)", family);
-		}
-	}
+#ifdef ONN_GOOGLETV_CHIP_FAMILY
+	family = onn_googletv_chip_family(family, hardware, platform);
+#endif
 	return family;
 }
