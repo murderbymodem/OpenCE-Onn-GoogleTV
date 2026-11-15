@@ -144,7 +144,7 @@ jobs:
             fi
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ env.BRANCH }}
           fetch-depth: 0
@@ -348,7 +348,7 @@ jobs:
       REBUILD: ${{ inputs.rebuild }}
     steps:
       # (a rollback: the earlier release's commit, with this workflow)
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.rebuild || github.sha }}
 
@@ -449,18 +449,18 @@ jobs:
           # (the release's archives' name, which the updater downloads)
           echo "HALO_RELEASE_ASSET_PREFIX=opence-onn-googletv" >> "$GITHUB_ENV"
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: .ccache
           key: ccache-onn-googletv-${{ github.sha }}
           restore-keys: ccache-onn-googletv-
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: build/android/third_party
           key: android-third-party-${{ hashFiles('tools/android_build.py', 'port/android/patches/**') }}
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
@@ -519,7 +519,7 @@ jobs:
           fi
 
       # (for the sign job only)
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: unsigned
           path: dist
@@ -542,7 +542,7 @@ jobs:
       KEY_CERTIFICATE_SHA256: dc9787ca36279161fbcfdb2a5042afbc7427a37945b4ef0657554b9a222fec58
       KEY_ALIAS: halo
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name: unsigned
           path: dist
@@ -600,13 +600,13 @@ jobs:
           done
           rm -f "$RUNNER_TEMP/key.keystore"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: halo-android-release
           path: dist/halo-android-release
           retention-days: 7
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: halo-android-debug
           path: dist/halo-android-debug

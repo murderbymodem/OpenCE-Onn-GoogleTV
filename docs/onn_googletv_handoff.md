@@ -327,9 +327,11 @@ asks is in [onn_googletv_runbook.md](onn_googletv_runbook.md).
   closes the issue when a release appears; and the sync disables any
   workflow other than its own that is active (a new or renamed one of
   upstream's would run here from the merge on), stopping its runs.
-  Checked for the audit and left as they are: the actions at v4 (Node 20
-  left the runners in September 2026; they run on Node 24, as upstream's
-  do); the NDK, platform 35 and build tools are the runner's, as for
+  The workflow's actions moved to their Node 24 versions (checkout v6,
+  cache v5, upload-artifact v6, download-artifact v7): Node 20 left the
+  runners in September 2026, and the v4 ones ran only because the runner
+  forces them onto Node 24, with a warning (upstream's own workflows are
+  still at v4). Checked for the audit and left as they are: the NDK, platform 35 and build tools are the runner's, as for
   upstream's own build, which meets a change of them first; GitHub ran the
   old daily schedule 7 to 9 hours late, so a sync can come hours after its
   time.
