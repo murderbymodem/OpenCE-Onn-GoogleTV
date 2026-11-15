@@ -17,7 +17,7 @@ Read as needed:
 ## The fork's rules
 
 - **Stay close to the main project.** `.github/workflows/onn-googletv.yml`
-  merges each of its releases every six hours, and a conflict needs a
+  merges each of its releases within the hour, and a conflict needs a
   person. Put the fork's changes in files of its own (`*_onn_googletv*`,
   `docs/onn_googletv_*`, new source files) with the smallest hooks in shared
   files. Never edit the main project's documents (`README.md`, `AGENTS.md`,

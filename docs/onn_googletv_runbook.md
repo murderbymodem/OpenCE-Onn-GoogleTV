@@ -1,7 +1,7 @@
 # OpenCE Onn GoogleTV: what to do when the workflow asks
 
 The workflow (`.github/workflows/onn-googletv.yml`) keeps the app up to date
-by itself. Every six hours it looks for a new release of the main project
+by itself. Every hour it looks for a new release of the main project
 (OpenCommunityEdition/OpenCE), merges it, builds the 32-bit app, signs it and
 publishes it. The boxes' app offers each new release when it starts.
 
@@ -17,10 +17,15 @@ release of the main project raised the network version (the release notes
 say "Network version"): then the boxes cannot join the main project's games
 until the merge is done.
 
+GitHub mails the first failed sync only: while the issue is open, the
+hourly syncs that meet the same conflict only warn. A later release of the
+main project that still conflicts opens its own issue (and mails once).
+
 **What to do:** the merge needs someone who reads code. Open a Claude Code
 session on this repository and ask it to "merge the main project's build-N
-into armeabi-v7a and resolve the conflicts" (the issue names N). Close the
-issue once the release appears.
+into armeabi-v7a and resolve the conflicts" (the issue names N). The next
+sync closes the issue (and any other open conflict issue) once
+armeabi-v7a has the main project's newest release.
 
 ## A build failed / The build of armeabi-v7a keeps failing
 
