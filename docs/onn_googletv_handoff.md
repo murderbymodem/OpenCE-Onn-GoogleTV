@@ -394,7 +394,10 @@ conflict. The front page's relative links start from `.github/`
 | 365.4 | 36505 | pull request 17 | the fork's code moved to its own files (same behaviour) |
 | 365.5 | 36506 | pull request 19 | none (a comment in the workflow; documents) |
 
-Pull requests 10-12, 16 and 18 changed only Markdown and built nothing.
+Before these, pull requests 11 (the renamed files) and 12 (the versions
+matching upstream's) each built a release in the numbering of the time;
+the Releases page no longer has them, as it keeps five. Pull requests 10,
+16 and 18 changed only Markdown and built nothing.
 Both boxes updated themselves through these; the user tested 365.4 on them
 and it works. 365.5 is the same app code as 365.4 and was not run on a box.
 
