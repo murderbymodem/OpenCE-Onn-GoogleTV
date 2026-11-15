@@ -6,7 +6,7 @@
 
 
 <p align="center">
-  <a href="https://github.com/murderbymodem/OpenCE-AndroidTV/releases/latest"><img src="https://img.shields.io/github/v/release/murderbymodem/OpenCE-AndroidTV?label=Download%20AndroidTV&style=for-the-badge" alt="Download for AndroidTV"></a>
+  <a href="https://github.com/murderbymodem/OpenCE-AndroidTV/releases/latest"><img src="https://img.shields.io/github/v/release/murderbymodem/OpenCE-AndroidTV?label=Download%20AndroidTV&style=for-the-badge" alt="Download for Onn GoogleTV"></a>
   <a href="https://github.com/OpenCommunityEdition/OpenCE/releases/latest"><img src="https://img.shields.io/github/v/release/OpenCommunityEdition/OpenCE?label=Download&style=for-the-badge" alt="Download"></a>
   <a href="https://halocombatevolved.com/"><img src="https://img.shields.io/badge/Play-in_browser-blue?style=for-the-badge" alt="Play in browser"></a>
   <a href="https://discord.gg/9gqcHyr5km"><img src="https://img.shields.io/badge/Discord-join-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
