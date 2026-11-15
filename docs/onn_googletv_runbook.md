@@ -22,16 +22,32 @@ session on this repository and ask it to "merge the main project's build-N
 into armeabi-v7a and resolve the conflicts" (the issue names N). Close the
 issue once the release appears.
 
-## A build failed
+## A build failed / The build of armeabi-v7a keeps failing
 
 **What it means:** a build of armeabi-v7a failed, so no release was
 published. Most failures are passing ones (a download that timed out), and
-the next syncs build the same commit again, twice at most.
+the next syncs build the same commit again, twice. GitHub mails you only
+for the first failure (the push's); the sync's own tries mail nobody. After
+three failures the sync opens the issue "The build of armeabi-v7a keeps
+failing", goes on trying once a day, and closes the issue itself when a
+release appears.
 
-**What to do:** nothing, at first. If a third email comes for the same
-commit, the failure is real: the main project's release does not build in
-this fork as it is. As for a conflict, ask a Claude Code session to "fix the
-failed build of armeabi-v7a" and give it the run's link.
+**What to do:** nothing, for an email alone. When the issue comes, look at
+the run it links: if a download or GitHub itself failed, wait for the daily
+try. Otherwise the failure is real: the main project's release does not
+build in this fork as it is. As for a conflict, ask a Claude Code session to
+"fix the failed build of armeabi-v7a" and give it the run's link.
+
+## A warning that a workflow of the main project's was disabled
+
+**What it means:** a merge brought a workflow file of the main project's
+that this repository had not seen (a new one, or one it renamed). Only this
+fork's workflow should run here, so the sync disabled it and stopped its
+runs. One run of it may have started before that; it has none of the fork's
+secrets.
+
+**What to do:** nothing. If the warning says it could not be disabled:
+**Actions**, the workflow, **Disable workflow**.
 
 ## The sync token expires soon / no longer works
 

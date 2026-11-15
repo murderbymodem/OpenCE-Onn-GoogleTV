@@ -319,6 +319,22 @@ asks is in [onn_googletv_runbook.md](onn_googletv_runbook.md).
   the rollback input (rebuild an earlier release's commit as the next
   number; refused before 359.1); `tools/test_host_alignment.py` in every
   build.
+- Later the same day (the audit for unattended running): the retry now
+  counts every run that built and did not succeed (a time limit too), opens
+  the issue "The build of armeabi-v7a keeps failing" after three (the
+  sync's own builds mail nobody), tries once a day from then on (a long
+  outage of musl.libc.org or SDL's repository still ends in a release) and
+  closes the issue when a release appears; and the sync disables any
+  workflow other than its own that is active (a new or renamed one of
+  upstream's would run here from the merge on), stopping its runs.
+  The workflow's actions moved to their Node 24 versions (checkout v6,
+  cache v5, upload-artifact v6, download-artifact v7): Node 20 left the
+  runners in September 2026, and the v4 ones ran only because the runner
+  forces them onto Node 24, with a warning (upstream's own workflows are
+  still at v4). Checked for the audit and left as they are: the NDK, platform 35 and build tools are the runner's, as for
+  upstream's own build, which meets a change of them first; GitHub ran the
+  old daily schedule 7 to 9 hours late, so a sync can come hours after its
+  time.
 - Decided: nothing is offered upstream (the user prefers not to send fixes
   whose need for the 64-bit app is unproven). What the workflow cannot fix:
   a conflicting merge, a release that does not build here, a release that
