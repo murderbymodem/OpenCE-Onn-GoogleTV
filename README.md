@@ -52,6 +52,13 @@ The 32-bit Onn GoogleTV app has been tested on:
 | onn 4K Pro Streaming Device Gen 2 (2026), Android 14 (32-bit) | Amlogic S905X5M, 4x Cortex-A55 | Arm Mali-G310 (OpenGL ES 3.2) | 3 GB |
 | onn 4K Plus Streaming Device (2026), Android 14 (32-bit) | Amlogic S905X5M, 4x Cortex-A55 | Arm Mali-G310 (OpenGL ES 3.2) | 2 GB |
 
+Both hold about 30 fps in small multiplayer matches, with occasional dips below
+that. Some of the main project's features, such as high player counts and
+modded co-op campaigns, may not be playable on this hardware.
+
+Older onn boxes and other 32-bit Android TV and GoogleTV boxes may work, but are
+untested.
+
 ## Download
 
 GitHub Actions builds the game for each commit. 
