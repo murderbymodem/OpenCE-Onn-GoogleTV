@@ -297,6 +297,29 @@ which does not survive it. Not looked into further (the onn boxes sample
 safely). `debug.gl_profile = true`, which interrupts no thread, is the way
 to see that box's driver time per GL call.
 
+Their `debug.gl_profile` (release 374, 2026-11-16): recognised (family 3),
+30 fps in quiet scenes with ~6 ms of GL a frame; in a busy one ~150 ms of GL
+a frame, ~115 of it `host_gl_buffer_write` (some 410 writes of the vertex
+mirror, 270 us each against 12 us in quiet scenes: the driver waits for the
+GPU despite `GL_MAP_UNSYNCHRONIZED_BIT`, which Mali honours) and 15-18 ms
+the end-of-frame `glCopyBufferSubData` of the visibility counters (a wait
+for the GPU's frame). Draws are cheap (20-35 us). The user decided not to
+tune for this driver (out of scope, Next steps). Ideas, if that changes: a
+debug property choosing `glBufferSubData` or orphaning for those writes,
+and one skipping the counters' copy, for the reporter to measure.
+
+The same reporter could not move after the first cutscene: Android listed
+four "gamepads" (`NexusIrHandler`, the IR receiver; `virtual-search`; their
+PG-9021S, Amazon's Fire TV vendor 1949:0402; `virtual-remote`), SDL
+recognised none (type 1, standard), so the main project's order gave
+player 1 the IR receiver, and menus (any controller) worked until the game
+began. `xinput_order_onn_googletv.h` puts the unrecognised gamepads with a
+left stick before those without (the axis asked through
+`host_sdl_gamepad_axis` from 0x100, as the turn buttons' 0x100 buttons, the
+guest's SDL having no `SDL_GamepadHasAxis`), and logs the players. It could
+happen on an onn box too, with a controller SDL does not know. Not run on a
+box.
+
 ## 2026-11-15: the fork's name, versions, and a workflow that looks after itself
 
 Pull requests 9-15 of the renamed repository; what to do when the workflow
@@ -475,7 +498,9 @@ issues (the token, the failing build) were already once each.
 Out of scope (decided 2026-11-13): busy co-op games with many players (the
 client simulates every character's movement: the main project's design),
 and controller rumble over Bluetooth (Android exposes no vibrator for the
-8BitDo Ultimate 2 in DInput mode).
+8BitDo Ultimate 2 in DInput mode). Decided 2026-11-16: the performance of
+boxes other than the onn ones (the Technicolor UIW4059MIL: its driver
+stalls on vertex buffer writes, below).
 
 1. Choose what is next from a fresh profile of a campaign level or a
    standard multiplayer game, not from guesses.
