@@ -55,6 +55,10 @@ extern unsigned char network_aim_assist_block_mouse(void);
 #include <string.h>
 
 #define PORT_COUNT 4
+/* (OpenCE Onn GoogleTV's order of the Android app's gamepads) */
+#if __has_include("xinput_order_onn_googletv.h")
+#include "xinput_order_onn_googletv.h"
+#endif
 #define VK_OEM_3_BACKQUOTE 0xc0
 
 /* ---------- game hooks */
@@ -1181,6 +1185,9 @@ static int sdl_gamepads(SDL_Gamepad *gamepads[PORT_COUNT])
 		if (gamepad)
 			gamepads[found++] = gamepad;
 	}
+#endif
+#ifdef ONN_GOOGLETV_GAMEPAD_ORDER
+	found = onn_googletv_gamepads_order(ids, count, gamepads);
 #endif
 	SDL_free(ids);
 	return found;

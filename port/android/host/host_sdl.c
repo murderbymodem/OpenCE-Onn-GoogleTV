@@ -282,6 +282,10 @@ int host_sdl_gamepad_axis(uint32_t gamepad, int axis)
 {
 	SDL_Gamepad *object = handle_get(gamepad, _handle_gamepad);
 
+	/* (from 0x100 on, whether the gamepad has the axis: the players' order,
+	xinput_order_onn_googletv.h) */
+	if (object && axis >= 0x100)
+		return SDL_GamepadHasAxis(object, (SDL_GamepadAxis)(axis - 0x100));
 	return object ? SDL_GetGamepadAxis(object, (SDL_GamepadAxis)axis) : 0;
 }
 

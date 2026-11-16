@@ -48,5 +48,7 @@ Read as needed:
   `ninja android`, run `tools/test_host_alignment.py`, and say what was not
   run on a box: the user tests on the onn boxes.
 - **Out of scope** (decided with the user): busy co-op games with many
-  players, controller rumble over Bluetooth, and offering the fork's fixes
-  to the main project.
+  players, controller rumble over Bluetooth, offering the fork's fixes
+  to the main project, and tuning performance for boxes other than the onn
+  ones (a box may be recognised, as the Technicolor UIW4059MIL is, but its
+  driver's speed is its own).

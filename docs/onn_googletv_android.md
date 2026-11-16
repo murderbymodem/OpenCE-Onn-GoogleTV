@@ -47,6 +47,15 @@ have other defaults, or are its own:
 | `debug.gl_refresh_state` | `false` | `true`: every OpenGL value is set again for each draw, whatever the renderer remembers having set. For finding whether a driver and the renderer disagree on what is set (black or missing surfaces). |
 | `debug.sample_seconds` | `0` | As in the main project (a hang's sampler), and a fraction of a second (`0.02`, a hundredth at least) makes it a profile with each sample's callers, which simpleperf cannot give of the 32-bit guest: record `adb logcat -s halo` to a file while playing, and count the functions of the `sample tid` lines' addresses (the first is where the thread was, the rest its callers, innermost first; "same N" repeats a thread's last sample). |
 
+Players' gamepads (`port/linux/src/xinput_order_onn_googletv.h`, tested by
+`tools/test_onn_googletv_gamepad_order.py`): as in the main project, the
+gamepads SDL recognises take the first players; of the rest, those with a
+left stick now come before those without (remote receivers, virtual key
+devices, which Android also lists as gamepads), each kind in Android's
+order. A box with only a controller keeps the main project's order. The log
+names the players' gamepads whenever they change (`gamepads: player 1:
+gamepad 4, ...`, the numbers of the app's `gamepad 4: <name>` lines).
+
 Boxes the fork recognises beyond the main project's chip list
 (`port/android/host/host_render_policy_onn_googletv.h`, tested by
 `tools/test_onn_googletv_chip.py`): the Technicolor UIW4059MIL (Broadcom
